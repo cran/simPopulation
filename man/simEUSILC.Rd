@@ -15,7 +15,7 @@ simEUSILC(dataS, hid = "db030", wh = "db090", wp = "rb050",
           income = "netIncome", method = c("multinom", "twostep"), 
           breaks = NULL, lower = NULL, upper = NULL, 
           gpd = TRUE, threshold = NULL, est = "moments", 
-          alpha = 0.01, residuals = TRUE, 
+          const = NULL, alpha = 0.01, residuals = TRUE, 
           components = c("py010n", "py050n", "py090n", 
             "py100n", "py110n", "py120n", "py130n", "py140n"), 
           conditional = c(getCatName(income), "pl030"), 
@@ -76,13 +76,15 @@ simEUSILC(dataS, hid = "db030", wh = "db090", wp = "rb050",
   \item{est}{a character string; if \code{method} is \code{"multinom"}, the 
     estimator to be used to fit the generalized Pareto distribution (see 
     \code{\link[POT]{fitgpd}}).}
-  \item{alpha}{numeric; if \code{method} is \code{"lm"}, this gives trimming 
-    parameters for the sample data.  Trimming is thereby done with respect to 
-    the variable specified by \code{additional}.  If a numeric vector of length 
-    two is supplied, the first element gives the trimming proportion for the 
-    lower part and the second element the trimming proportion for the upper 
-    part.  If a single numeric is supplied, it is used for both.  With 
-    \code{NULL}, trimming is suppressed.}
+  \item{const}{numeric; if \code{method} is \code{"twostep"}, this gives a 
+    constant to be added before log transformation.}
+  \item{alpha}{numeric; if \code{method} is \code{"twostep"}, this gives 
+    trimming parameters for the sample data.  Trimming is thereby done with 
+    respect to the variable specified by \code{additional}.  If a numeric 
+    vector of length two is supplied, the first element gives the trimming 
+    proportion for the lower part and the second element the trimming 
+    proportion for the upper part.  If a single numeric is supplied, it is used 
+    for both.  With \code{NULL}, trimming is suppressed.}
   \item{residuals}{logical; if \code{method} is \code{"twostep"}, this 
     indicates whether the random error terms should be obtained by draws from 
     the residuals.  If \code{FALSE}, they are drawn from a normal distribution 
@@ -135,7 +137,7 @@ eusilcM <- simEUSILC(eusilcS, upper = 200000)
 summary(eusilcM)
 
 # two-step regression
-eusilcT <- simEUSILC(eusilcS, method = "lm")
+eusilcT <- simEUSILC(eusilcS, method = "twostep")
 summary(eusilcT)
 }
 }

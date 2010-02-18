@@ -11,8 +11,8 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
         method = c("multinom", "lm"), zeros = TRUE, 
         breaks = NULL, lower = NULL, upper = NULL, 
         gpd = TRUE, threshold = NULL, est = "moments", 
-        censor = NULL, log = TRUE, alpha = 0.01, 
-        residuals = TRUE, keep = TRUE, 
+        censor = NULL, log = TRUE, const = NULL, 
+        alpha = 0.01, residuals = TRUE, keep = TRUE, 
         maxit = 500, MaxNWts = 1500, 
         tol = .Machine$double.eps^0.5, seed) {
     
@@ -69,25 +69,35 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
     } else {
         useLm <- TRUE
         if(log) {
-            ## use log-transformation
-            # check for negative values
-            neg <- which(additionalS < 0)
-            haveNeg <- length(neg) > 0
-            if(haveNeg) {
-                # define break points for negative values
-                if(is.null(breaks)) {
-                    breaks <- getBreaks(additionalS[neg], 
-                        dataS[neg, w], zeros=TRUE, lower, upper)
+            if(is.null(const)) {
+                ## use log-transformation
+                # check for negative values
+                neg <- which(additionalS < 0)
+                haveNeg <- length(neg) > 0
+                if(haveNeg) {
+                    # define break points for negative values
+                    if(is.null(breaks)) {
+                        breaks <- getBreaks(additionalS[neg], 
+                            dataS[neg, w], zeros=TRUE, lower, upper)
+                    } else {
+                        checkBreaks(breaks)
+                        breaks <- c(unique(breaks[breaks < 0]), 0)
+                    }
+                    if(zeros || length(breaks) > 2) {
+                        useMultinom <- TRUE
+                        breaks <- c(breaks, Inf)  # add Inf to breakpoints
+                    } else useMultinom <- FALSE
+                    useLogit <- !useMultinom
                 } else {
-                    checkBreaks(breaks)
-                    breaks <- c(unique(breaks[breaks < 0]), 0)
+                    useLogit <- zeros || any(additionalS == 0)
+                    useMultinom <- FALSE
                 }
-                if(zeros || length(breaks) > 2) {
-                    useMultinom <- TRUE
-                    breaks <- c(breaks, Inf)  # add Inf to breakpoints
-                } else useMultinom <- FALSE
-                useLogit <- !useMultinom
             } else {
+                # check constant
+                if(!is.numeric(const) || length(const) == 0) {
+                    stop("'const' must be numeric")
+                } else const <- const[1]
+                # set control parameters
                 useLogit <- zeros || any(additionalS == 0)
                 useMultinom <- FALSE
             }
@@ -244,7 +254,8 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
         
     } else if(useLogit) {
         ## some preparations
-        indS <- if(log && haveNeg) additionalS > 0 else additionalS != 0
+        if(log && is.null(const) && haveNeg) indS <- additionalS > 0 
+        else indS <- additionalS != 0
         dataS[, name] <- as.integer(indS)
         formula <- as.formula(fstring)  # formula for model
         # auxiliary model for all strata (used in case of empty combinations)   
@@ -349,7 +360,10 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
         
         ## fit linear model
         # formula for linear model
-        fname <- if(log) paste("log(",additional,")", sep = "") else additional
+        if(log) {
+            fname <- paste("log(", additional, 
+                if(!is.null(const)) " + const", ")", sep = "") 
+        } else fname <- additional
         fstring <- paste(fname, " ~ ", fpred, sep = "")
         formula <- as.formula(fstring)
         # auxiliary model for all strata (used in case of empty combinations)
@@ -407,7 +421,11 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
                 }
                 # return realizations
                 sim <- pred + error
-                if(log) exp(sim) else sim
+                if(log) {
+                    res <- exp(sim)  # transform back
+                    if(!is.null(const)) res <- res - const  # subtract constant
+                    res
+                } else sim
             }, coef)
         valuesTmp <- unsplit(valuesTmp, dataPop[, strata, drop=FALSE])
         
@@ -415,7 +433,7 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
         if(useMultinom) {
             values[which(indP == 1)] <- valuesTmp
         } else if(useLogit) {
-            if(log && haveNeg) {
+            if(log && is.null(const) && haveNeg) {
                 # only one category for non-positive values 
                 # (two breakpoints, one of them is 0)
                 values <- rep.int(NA, N)

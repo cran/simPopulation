@@ -1,0 +1,9 @@
+Changes in simPopulation version 0.1.1
+
+    + Argument 'const' added to functions 'simContinuous' and 'simEUSILC' so 
+      that constant can be added before log transformation.
+    
+    + Bugfix in 'getCat': it produced an error for semi-continuous variables 
+      when there were either no negative or no positive breakpoints.
+    
+    + Added help file for package.

@@ -10,8 +10,7 @@ quantileWt <- function(x, weights = NULL,
     x <- unname(x)  # unlike 'quantile', this never returns a named vector
     if(is.null(weights)) {
         return(quantile(x, probs, na.rm=na.rm, names=FALSE, type=1))
-    }
-    else if(!is.numeric(weights)) stop("'weights' must be a numeric vector")
+    } else if(!is.numeric(weights)) stop("'weights' must be a numeric vector")
     else if(length(weights) != length(x)) {
         stop("'weights' must have the same length as 'x'")
     } else if(!all(is.finite(weights))) stop("missing or infinite weights")

@@ -11,7 +11,7 @@ simEUSILC <- function(dataS, hid = "db030", wh = "db090",
         income = "netIncome", method = c("multinom", "twostep"), 
         breaks = NULL, lower = NULL, upper = NULL, 
         gpd = TRUE, threshold = NULL, est = "moments", 
-        alpha = 0.01, residuals = TRUE, 
+        const = NULL, alpha = 0.01, residuals = TRUE, 
         components = c("py010n", "py050n", "py090n", 
           "py100n", "py110n", "py120n", "py130n", "py140n"), 
         conditional = c(getCatName(income), "pl030"), 
@@ -94,8 +94,8 @@ simEUSILC <- function(dataS, hid = "db030", wh = "db090",
         # two-step model
         dataP <- simContinuous(dataS, dataP, w=wp, strata=strata, 
             basic=basic, additional=income, method="lm", zeros=zeros, 
-            breaks=breaks, log=TRUE, alpha=alpha, residuals=residuals, 
-            maxit=maxit, MaxNWts=MaxNWts, tol=tol)
+            breaks=breaks, log=TRUE, const=const, alpha=alpha, 
+            residuals=residuals, maxit=maxit, MaxNWts=MaxNWts, tol=tol)
         dataP[, incomeCat] <- getCat(dataP[, income], breaks, zeros)
     }
     

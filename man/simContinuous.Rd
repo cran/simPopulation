@@ -18,8 +18,8 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
               method = c("multinom", "lm"), zeros = TRUE, 
               breaks = NULL, lower = NULL, upper = NULL, 
               gpd = TRUE, threshold = NULL, est = "moments", 
-              censor = NULL, log = TRUE, alpha = 0.01, 
-              residuals = TRUE, keep = TRUE, 
+              censor = NULL, log = TRUE, const = NULL, 
+              alpha = 0.01, residuals = TRUE, keep = TRUE, 
               maxit = 500, MaxNWts = 1500, 
               tol = .Machine$double.eps^0.5, seed)
 }
@@ -82,8 +82,10 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
   \item{log}{logical; if \code{method} is \code{"lm"}, this indicates whether 
     the linear model should be fitted to the logarithms of the variable 
     specified by \code{additional}.  The predicted values are then 
-    back-transformed with the exponential function.  If \code{TRUE} and there 
-    are negative values, a two-step model is applied  (see \dQuote{Details}).}
+    back-transformed with the exponential function.  See \dQuote{Details} for 
+    more information.}
+  \item{const}{numeric; if \code{method} is \code{"lm"} and \code{log} is 
+    \code{TRUE}, this gives a constant to be added before log transformation.}
   \item{alpha}{numeric; if \code{method} is \code{"lm"}, this gives trimming 
     parameters for the sample data.  Trimming is thereby done with respect to 
     the variable specified by \code{additional}.  If a numeric vector of length 
@@ -116,22 +118,34 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
 }
 \details{
   If \code{method} is \code{"lm"}, the behavior for two-step models is 
-  described in the following.   If \code{zeros} is \code{TRUE} and \code{log} 
-  is not \code{TRUE} or the variable specified by \code{additional} does not 
-  contain negative values, a log-linear model is used to predict whether an 
-  observation is zero or not.  Then a linear model is used to predict the 
-  non-zero values.  If \code{zeros} is \code{TRUE}, \code{log} is \code{TRUE} 
-  and there are negative values, a multinomial log-linear model is used to 
-  predict negative, zero and positive observations.  Categories for the 
+  described in the following.
+  
+  If \code{zeros} is \code{TRUE} and \code{log} is not \code{TRUE} or the 
+  variable specified by \code{additional} does not contain negative values, a 
+  log-linear model is used to predict whether an observation is zero or not.  
+  Then a linear model is used to predict the non-zero values.  
+  
+  If \code{zeros} is \code{TRUE}, \code{log} is \code{TRUE} and \code{const} is 
+  specified, again a log-linear model is used to predict whether an observation 
+  is zero or not.  In the linear model to predict the non-zero values, 
+  \code{const} is added to the variable specified by \code{additional} before 
+  the logarithms are taken.
+  
+  If \code{zeros} is \code{TRUE}, \code{log} is \code{TRUE}, \code{const} is 
+  \code{NULL} and there are negative values, a multinomial log-linear model is 
+  used to predict negative, zero and positive observations.  Categories for the 
   negative values are thereby defined by \code{breaks}. In the second step, a 
   linear model is used to predict the positive values and negative values are 
-  drawn from uniform distributions in the respective classes.  If \code{zeros} 
-  is \code{FALSE} and \code{log} is \code{TRUE}, a two-step model is used if 
-  there are non-positive values in the variable specified by \code{additional}. 
-  Whether a log-linear or a multinomial log-linear model is used depends on the 
-  number of categories to be used for the non-positive values, as defined by 
-  \code{breaks}.  Again, positive values are then predicted with a linear 
-  model and non-positive values are drawn from uniform distributions.}
+  drawn from uniform distributions in the respective classes.  
+  
+  If \code{zeros} is \code{FALSE}, \code{log} is \code{TRUE} and \code{const} 
+  is \code{NULL}, a two-step model is used if there are non-positive values in 
+  the variable specified by \code{additional}.  Whether a log-linear or a 
+  multinomial log-linear model is used depends on the number of categories to 
+  be used for the non-positive values, as defined by \code{breaks}.  Again, 
+  positive values are then predicted with a linear model and non-positive 
+  values are drawn from uniform distributions.
+}
 \value{
   A \code{data.frame} containing the simulated population data including the 
   continuous variable specified by \code{additional}.

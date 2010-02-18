@@ -91,16 +91,22 @@ getCat <- function(x, breaks, zeros = TRUE, right = FALSE) {
         neg <- which(x < 0)
         # positive values (also works if none exist)
         bpos <- c(0, breaks[breaks > 0])
-        cpos <- cut(x[pos], bpos)
-        lpos <- levels(cpos)
+        if(length(bpos) == 1) lpos <- NULL
+        else {
+            cpos <- cut(x[pos], bpos)
+            lpos <- levels(cpos)
+        }
         # negative values (also works if none exist)
         bneg <- c(breaks[breaks < 0], 0)
-        cneg <- cut(x[neg], bneg, right=FALSE)
-        lneg <- levels(cneg)
+        if(length(bneg) == 1) lneg <- NULL 
+        else {
+            cneg <- cut(x[neg], bneg, right=FALSE)
+            lneg <- levels(cneg)
+        }
         # put it all together
         categories <- factor(ifelse(is.na(x), NA, 0), levels=c(lneg, 0, lpos))
-        if(length(pos)) categories[pos] <- cpos
-        if(length(neg)) categories[neg] <- cneg
+        if(length(pos) > 0 && length(bpos) > 1) categories[pos] <- cpos
+        if(length(neg) > 0 && length(bneg) > 1) categories[neg] <- cneg
         # return vector
         categories
     } else cut(x, breaks, include.lowest=TRUE, right=right)
