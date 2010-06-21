@@ -28,8 +28,6 @@ quantileWt <- function(x, weights = NULL,
     weights <- weights[ord]
     # some preparations
     rw <- cumsum(weights)/sum(weights)
-    rm <- rw / rw[length(rw)]
-    rw[length(rw)] <- 1  # just to make sure
     # obtain quantiles
     select <- sapply(probs, function(p) min(which(rw >= p)))
     q <- x[select]

@@ -1,3 +1,10 @@
+Changes in simPopulation version 0.1.2
+    
+    + Corrected typos in help file for 'quantileWt'.
+    
+    + Bugfix in 'simCategorical' in case of only one predictor variable.
+
+
 Changes in simPopulation version 0.1.1
 
     + Argument 'const' added to functions 'simContinuous' and 'simEUSILC' so 

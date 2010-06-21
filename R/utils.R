@@ -159,7 +159,7 @@ truncPareto <- function(n, loc, scale, shape, lower, upper) {
 ## logit regression (designed for internal use, hence no error handling)
 logitreg <- function(x, y, weights = rep(1, length(y)), 
     intercept = TRUE, start = rep(0, p), ...) {
-    # function to be minimized
+    # function to be minimized (log-likelihood)
     fmin <- function(beta, X, y, w) {
         p <- plogis(X %*% beta)
         -sum(2 * w * ifelse(y, log(p), log(1-p)))
@@ -223,7 +223,7 @@ minDist <- function(i, indDonors, donors) {
 
 
 ## weighted mean
-meanWt <- function(x , weights, na.rm = TRUE) {
+meanWt <- function(x, weights, na.rm = TRUE) {
     na.rm <- isTRUE(na.rm)
     if(missing(weights)) mean(x, na.rm=na.rm)
     else weighted.mean(x, w=weights, na.rm=na.rm)

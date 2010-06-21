@@ -48,7 +48,7 @@ simCategorical <- function(dataS, dataP, w = "rb050", strata = "db040",
     
 	for(i in additional) {
 		# components of multinomial model are specified
-		predS <- dataS[, predNames]
+		predS <- dataS[, predNames, drop = FALSE]
 		response <- dataS[, i]
 		f <- paste(predNames, collapse = " + ")
         formula <- paste(i, "~", f)
@@ -84,7 +84,8 @@ simCategorical <- function(dataS, dataP, w = "rb050", strata = "db040",
                     ", weights=", w, ", data=dataSample, trace=FALSE", 
                     ", maxit=maxit, MaxNWts=MaxNWts))", sep="")
                 mod <- eval(parse(text=command))
-                probs <- predict(mod, newdata=grid[whichGrid,], type="probs")
+                newdata <- grid[whichGrid, , drop=FALSE]
+                probs <- predict(mod, newdata=newdata, type="probs")
 #                # generate realizations for each combination
 #                sim <- as.list(rep.int(NA, length(indGrid)))
 #                sim[whichIndGrid] <- lapply(1:length(ncomb), 

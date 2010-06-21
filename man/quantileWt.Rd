@@ -20,11 +20,10 @@ quantileWt(x, weights = NULL, probs = seq(0, 1, 0.25), na.rm = TRUE)
     \code{\link[stats]{quantile}}.}
 }
 \details{
-  If weights are not specified then \code{quantile(x, prob, type = 1, na.rm = 
-  TRUE)} is used for the computation.
+  If weights are not specified then \code{quantile(x, probs, na.rm=na.rm, 
+  names=FALSE, type=1)} is used for the computation.
 
-  Note that missing values are removed and probabilities outside \eqn{[0, 1]} 
-  cause an error.
+  Note probabilities outside \eqn{[0, 1]} cause an error.
 }
 \value{
   A vector of the (weighted) sample quantiles.
