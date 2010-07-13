@@ -1,3 +1,9 @@
+Changes in simPopulation version 0.1.3
+    
+    + Bugfix: methods for the generic functions 'covWt' and 'corWt' are now 
+      exported.
+
+
 Changes in simPopulation version 0.1.2
     
     + Corrected typos in help file for 'quantileWt'.

@@ -40,6 +40,14 @@ S3method(spTable, default)
 S3method(spTable, formula)
 
 ## register methods for internal S3 generics defined in this package
+# methods for S3 generic 'corWt'
+S3method(corWt, default)
+S3method(corWt, matrix)
+S3method(corWt, data.frame)
+# methods for S3 generic 'covWt'
+S3method(covWt, default)
+S3method(covWt, matrix)
+S3method(covWt, data.frame)
 # methods for S3 generic 'prepBwplotStats'
 S3method(prepBwplotStats, default)
 S3method(prepBwplotStats, data.frame)
