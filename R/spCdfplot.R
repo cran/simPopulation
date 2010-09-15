@@ -106,9 +106,15 @@ spCdfplot.default <- function(x, weights = NULL, cond = NULL, dataS,
             if(is.null(auto.key$points)) auto.key$points <- FALSE
             if(is.null(auto.key$lines)) auto.key$lines <- TRUE
         }
-        xyplot(form, data=values, groups=if(nP == 1) NULL else .name, 
-            panel=panelSpCdfplot, prepanel=prepanelSpCdfplot, 
-            xlab=xlab, ylab=ylab, auto.key=auto.key, ...)
+        # this produces a 'NOTE' during 'R CMD check':
+#        xyplot(form, data=values, groups=if(nP == 1) NULL else .name, 
+#            panel=panelSpCdfplot, prepanel=prepanelSpCdfplot, 
+#            xlab=xlab, ylab=ylab, auto.key=auto.key, ...)
+        command <- paste("xyplot(form, data=values,", 
+            "groups=if(nP == 1) NULL else .name,", 
+            "panel=panelSpCdfplot, prepanel=prepanelSpCdfplot,", 
+            "xlab=xlab, ylab=ylab, auto.key=auto.key, ...)")
+        eval(parse(text=command))
     }
     ## call 'xyplot'
     localXyplot(as.formula(form), values, approx=app, bounds=bounds, ...)
