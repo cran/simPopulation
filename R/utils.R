@@ -23,6 +23,40 @@ checkFactor <- function(x, select) {
     x
 }
 
+# drop unused factor levels for factors in a data.frame
+dropLevels <- function(x, select = names(x)) {
+    check <- select[sapply(x[, select], function(x) is.factor(x))]
+    n <- length(check)
+    if(n == 1) x[, check] <- x[, check][, drop=TRUE]
+    else if(n > 1) {
+        x[, check] <- as.data.frame(lapply(x[, check], "[", drop=TRUE))
+    }
+    x
+}
+
+# create factor that includes NA
+factorNA <- function(x, always = FALSE) {
+    always <- isTRUE(always)
+    if(is.factor(x)) {
+        l <- levels(x)
+#        if(NA %in% l) x
+#        else if(always || any(is.na(x))) {
+#            l <- c(l, NA)
+#            factor(x, levels=c(levels(x), NA), exclude=c())
+#        } else x
+        if(NA %in% l || !(always || any(is.na(x)))) x
+        else {
+            l <- c(l, NA)
+            factor(x, levels=c(levels(x), NA), exclude=c())
+        }
+    } else {
+        if(always) {
+            factor(c(NA, x), exclude=c())[-1]  # little trick
+        } else factor(x, exclude=c())
+    }
+}
+
+
 ## get which observations contain NAs (and need to be excluded)
 getExclude <- function(x, ...) UseMethod("getExclude")
 getExclude.default <- function(x) which(is.na(x))
@@ -31,7 +65,7 @@ getExclude.data.frame <- function(x) unique(which(is.na(x), arr.ind=TRUE)[, 1])
 
 ## get breakpoints for categorizing continuous or semi-continuous variables
 getBreaks <- function(x, weights = NULL, zeros = TRUE, 
-        lower = NULL, upper = NULL) {
+        lower = NULL, upper = NULL, equidist = TRUE) {
     # initializations
     if(!is.numeric(x)) stop("'x' must be a numeric vector")
     if(!is.null(weights)) {
@@ -44,7 +78,8 @@ getBreaks <- function(x, weights = NULL, zeros = TRUE,
     if(zeros) {
         pos <- which(x > 0)
         if(length(pos)) {
-            ppos <- seq(0.1, 1, by=0.1)
+            if(isTRUE(equidist)) ppos <- seq(0.1, 1, by=0.1) 
+            else ppos <- c(0.01, 0.05, 0.1, seq(0.2, 0.8, by=0.2), 0.9, 0.95, 0.99, 1)
             qpos <- quantileWt(x[pos], weights[pos], ppos)
         } else qpos <- NULL
         neg <- which(x < 0)
@@ -54,7 +89,8 @@ getBreaks <- function(x, weights = NULL, zeros = TRUE,
         } else qneg <- NULL
         breaks <- c(qneg, 0, qpos)
     } else {
-        p <- seq(0, 1, by=0.1)
+        if(isTRUE(equidist)) p <- seq(0, 1, by=0.1) 
+        else p <- c(0, 0.01, 0.05, 0.1, seq(0.2, 0.8, by=0.2), 0.9, 0.95, 0.99, 1)
         breaks <- quantileWt(x, weights, p)   
     }
     breaks <- unique(breaks)  # remove duplicated values

@@ -27,6 +27,10 @@ export(
 )
 
 ## register methods for S3 generics defined in this package
+# methods for S3 generic 'contingencyWt'
+S3method(contingencyWt, default)
+S3method(contingencyWt, matrix)
+S3method(contingencyWt, data.frame)
 # methods for S3 generic 'spBwplot'
 S3method(spBwplot, default)
 # methods for S3 generic 'spCdfplot'

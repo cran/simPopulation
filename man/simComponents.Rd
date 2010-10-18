@@ -69,10 +69,12 @@ set.seed(1234)  # for reproducibility
 data(eusilcS)   # load sample data
 eusilcP <- simStructure(eusilcS)
 eusilcP <- simCategorical(eusilcS, eusilcP)
+basic <- c("age", "rb090", "hsize", "pl030", "pb220a")
 eusilcP <- simContinuous(eusilcS, eusilcP, 
-    basic = c("age", "rb090", "hsize", "pl030", "pb220a"))
+    basic = basic, upper = 200000, equidist = FALSE)
 # categorize net income for use as conditioning variable
-breaks <- getBreaks(eusilcS$netIncome, eusilcS$rb050, upper=Inf)
+breaks <- getBreaks(eusilcS$netIncome, eusilcS$rb050, 
+    upper=Inf, equidist = FALSE)
 eusilcS$netIncomeCat <- getCat(eusilcS$netIncome, breaks)
 eusilcP$netIncomeCat <- getCat(eusilcP$netIncome, breaks)
 # simulate net income components

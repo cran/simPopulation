@@ -10,10 +10,10 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
         additional = "netIncome", 
         method = c("multinom", "lm"), zeros = TRUE, 
         breaks = NULL, lower = NULL, upper = NULL, 
-        gpd = TRUE, threshold = NULL, est = "moments", 
-        censor = NULL, log = TRUE, const = NULL, 
-        alpha = 0.01, residuals = TRUE, keep = TRUE, 
-        maxit = 500, MaxNWts = 1500, 
+        equidist = TRUE, gpd = TRUE, threshold = NULL, 
+        est = "moments", censor = NULL, log = TRUE, 
+        const = NULL, alpha = 0.01, residuals = TRUE, 
+        keep = TRUE, maxit = 500, MaxNWts = 1500, 
         tol = .Machine$double.eps^0.5, seed) {
     
     ## initializations
@@ -53,18 +53,20 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
     additionalS <- dataS[, additional]
     
     ## determine which models to fit and do further initializations
+    haveBreaks <- !is.null(breaks)
     if(method == "multinom") {
         useMultinom <- TRUE
         useLogit <- FALSE
         useLm <- FALSE
         # define break points (if missing)
-        if(is.null(breaks)) {
-            if(is.null(upper) && gpd) upper <- Inf
-            breaks <- getBreaks(additionalS, dataS[, w], zeros, lower, upper)
-        } else {
+        if(haveBreaks) {
             checkBreaks(breaks)
             breaks <- if(zeros) union(breaks, 0) else unique(breaks)
             breaks <- sort(breaks)
+        } else {
+            if(is.null(upper) && gpd) upper <- Inf
+            breaks <- getBreaks(additionalS, dataS[, w], 
+                zeros, lower, upper, equidist)
         }
     } else {
         useLm <- TRUE
@@ -76,12 +78,12 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
                 haveNeg <- length(neg) > 0
                 if(haveNeg) {
                     # define break points for negative values
-                    if(is.null(breaks)) {
-                        breaks <- getBreaks(additionalS[neg], 
-                            dataS[neg, w], zeros=TRUE, lower, upper)
-                    } else {
+                    if(haveBreaks) {
                         checkBreaks(breaks)
                         breaks <- c(unique(breaks[breaks < 0]), 0)
+                    } else {
+                        breaks <- getBreaks(additionalS[neg], 
+                            dataS[neg, w], zeros=TRUE, lower, upper)
                     }
                     if(zeros || length(breaks) > 2) {
                         useMultinom <- TRUE
@@ -223,8 +225,10 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
         } else {
             nbreaks <- length(breaks)
             if(gpd) {
-                if(is.null(threshold)) ngpd <- nbreaks-1
-                else if(any(tmp <- breaks >= threshold)) ngpd <- min(which(tmp))
+                if(is.null(threshold)) {
+                    if(!haveBreaks && !isTRUE(equidist)) ngpd <- nbreaks-2
+                    else ngpd <- nbreaks-1
+                } else if(any(tmp <- breaks >= threshold)) ngpd <- min(which(tmp))
                 else ngpd <- nbreaks
             } else ngpd <- nbreaks
             if(gpd && ngpd <= ncat) {

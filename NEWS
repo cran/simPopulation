@@ -1,3 +1,23 @@
+Changes in simPopulation version 0.2
+    
+    + new argument 'equidist' in 'getBreaks', 'simContinuous' and 'simEUSILC' 
+      indicating whether (positive) breakpoints should be equidistant.
+    
+    + function 'continencyWt' is now generic and has an additional 'data.frame' 
+      method for computing pairwise contingency coefficients.
+    
+    + added package vignette 'simPopulation-eusilc'.
+    
+    + Bugfix in 'simStructure': if 'hsize' is not supplied, the resulting 
+      variable is now an integer instead of an array.
+    
+    + new methods to choose from in 'simStructure' and 'simCategorical'.
+    
+    + new argument 'useNA' in 'tableWt' indicating whether to include extra NA 
+      levels in the table.
+
+
+
 Changes in simPopulation version 0.1.4
     
     + 'R CMD check' no longer produces a note.

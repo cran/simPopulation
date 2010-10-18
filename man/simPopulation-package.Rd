@@ -13,8 +13,8 @@ to EU-SILC.
 \tabular{ll}{
 Package: \tab simPopulation\cr
 Type: \tab Package\cr
-Version: \tab 0.1.4\cr
-Date: \tab 2010-09-15\cr
+Version: \tab 0.2\cr
+Date: \tab 2010-10-18\cr
 Depends: \tab R(>= 2.7.1), nnet, POT, lattice, vcd\cr
 Imports: \tab lattice, vcd\cr
 License: \tab GPL (>= 2)\cr
@@ -38,6 +38,8 @@ simComponents           Simulate components of continuous variables of
 simContinuous           Simulate continuous variables of population
                         data
 simEUSILC               Simulate EU-SILC population data
+simPopulation-package   Simulation of synthetic populations for surveys
+                        based on sample data
 simStructure            Simulate the household structure of population
                         data
 spBwplot                Weighted box plots
@@ -52,9 +54,14 @@ spTable                 Cross tabulations of expected and realized
                         population sizes
 tableWt                 Weighted cross tabulation
 }
+
+Further information is available in the following vignettes:
+\tabular{ll}{
+\code{simPopulation-eusilc} \tab Simulation of EU-SILC Population Data: Using the R Package simPopulation (source, pdf)\cr
+}
 }
 \author{
-Stefan Kraft and Andreas Alfons
+Andreas Alfons and Stefan Kraft
 
 Maintainer: Andreas Alfons <alfons@statistik.tuwien.ac.at>
 }

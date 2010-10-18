@@ -17,10 +17,10 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
               additional = "netIncome", 
               method = c("multinom", "lm"), zeros = TRUE, 
               breaks = NULL, lower = NULL, upper = NULL, 
-              gpd = TRUE, threshold = NULL, est = "moments", 
-              censor = NULL, log = TRUE, const = NULL, 
-              alpha = 0.01, residuals = TRUE, keep = TRUE, 
-              maxit = 500, MaxNWts = 1500, 
+              equidist = TRUE, gpd = TRUE, threshold = NULL, 
+              est = "moments", censor = NULL, log = TRUE, 
+              const = NULL, alpha = 0.01, residuals = TRUE, 
+              keep = TRUE, maxit = 500, MaxNWts = 1500, 
               tol = .Machine$double.eps^0.5, seed)
 }
 \arguments{
@@ -41,8 +41,8 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
     variable of \code{dataS} that should be simulated for the population data.  
     Currently, only one additional variable can be simulated at a time.}
   \item{method}{a character string specifying the method to be used for 
-    simulating personal income.  Accepted values are \code{"multinom"}, for 
-    using multinomial log-linear models combined with random draws from the 
+    simulating the continuous variable.  Accepted values are \code{"multinom"}, 
+    for using multinomial log-linear models combined with random draws from the 
     resulting ategories, and \code{"lm"}, for using (two-step) regression 
     models combined with random error terms.}
   \item{zeros}{a logical indicating whether the variable specified by 
@@ -61,6 +61,10 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
     lower and upper bounds other than minimum and maximum, respectively.  Note 
     that if \code{method} is \code{"multinom"} and \code{gpd} is \code{TRUE} 
     (see below), \code{upper} defaults to \code{Inf}.}
+  \item{equidist}{logical; if \code{method} is \code{"multinom"} and 
+    \code{breaks} is \code{NULL}, this indicates whether the (positive) default 
+    breakpoints should be equidistant or whether there should be refinements in 
+    the lower and upper tail (see \code{\link{getBreaks}}).}
   \item{gpd}{logical; if \code{method} is \code{"multinom"}, this indicates 
     whether the upper tail of the variable specified by \code{additional} 
     should be simulated by random draws from a (truncated) generalized Pareto 
@@ -176,7 +180,7 @@ basic <- c("age", "rb090", "hsize", "pl030", "pb220a")
 
 # multinomial model with random draws
 eusilcM <- simContinuous(eusilcS, eusilcP, 
-    basic = basic, upper = 200000)
+    basic = basic, upper = 200000, equidist = FALSE)
 summary(eusilcM)
 
 # two-step regression

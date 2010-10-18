@@ -12,8 +12,9 @@
 \usage{
 simStructure(dataS, hid = "db030", w = "db090", 
              hsize = NULL, strata = "db040", pid = NULL, 
-             additional = c("age", "rb090"), keep = TRUE, 
-             seed)
+             additional = c("age", "rb090"), 
+             method = c("direct", "multinom", "distribution"), 
+             keep = TRUE, seed)
 }
 \arguments{
   \item{dataS}{a \code{data.frame} containing household survey data.}
@@ -33,6 +34,14 @@ simStructure(dataS, hid = "db030", w = "db090",
   \item{additional}{a character vector specifying additional categorical 
     variables of \code{dataS} that define the household structure, typically 
     age and gender.}
+  \item{method}{a character string specifying the method to be used for 
+    simulating the household sizes.  Accepted values are \code{"direct"} 
+    (estimation of the population totals for each combination of stratum and 
+    household size using the Horvitz-Thompson estimator), \code{"multinom"} 
+    (estimation of the conditional probabilities within the strata using a 
+    multinomial log-linear model and random draws from the resulting 
+    distributions), or \code{"distribution"} (random draws from the observed 
+    conditional distributions within the strata).}
   \item{keep}{a logical indicating whether the original IDs of the 
     corresponding households in the underlying sample should be stored as a 
     variable in the resulting population data.  If \code{TRUE}, the 
@@ -45,7 +54,7 @@ simStructure(dataS, hid = "db030", w = "db090",
 \value{
   A \code{data.frame} containing the simulated population household structure.
 }
-\author{Stefan Kraft and Andreas Alfons}
+\author{Andreas Alfons and Stefan Kraft}
 \note{
   The function \code{\link{sample}} is used, which gives results incompatible 
   with those from \R < 2.2.0 and produces a warning the first time this happens 

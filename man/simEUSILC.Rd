@@ -14,8 +14,9 @@ simEUSILC(dataS, hid = "db030", wh = "db090", wp = "rb050",
           categorical = c("pl030", "pb220a"), 
           income = "netIncome", method = c("multinom", "twostep"), 
           breaks = NULL, lower = NULL, upper = NULL, 
-          gpd = TRUE, threshold = NULL, est = "moments", 
-          const = NULL, alpha = 0.01, residuals = TRUE, 
+          equidist = TRUE, gpd = TRUE, threshold = NULL, 
+          est = "moments", const = NULL, alpha = 0.01, 
+          residuals = TRUE, 
           components = c("py010n", "py050n", "py090n", 
             "py100n", "py110n", "py120n", "py130n", "py140n"), 
           conditional = c(getCatName(income), "pl030"), 
@@ -66,6 +67,10 @@ simEUSILC(dataS, hid = "db030", wh = "db090", wp = "rb050",
     \code{breaks} is \code{NULL}, these can be used to specify lower and upper 
     bounds other than minimum and maximum, respectively.  Note that if 
     \code{gpd} is \code{TRUE} (see below), \code{upper} defaults to \code{Inf}.}
+  \item{equidist}{logical; if \code{method} is \code{"multinom"} and 
+    \code{breaks} is \code{NULL}, this indicates whether the (positive) default 
+    breakpoints should be equidistant or whether there should be refinements in 
+    the lower and upper tail (see \code{\link{getBreaks}}).}
   \item{gpd}{logical; if \code{method} is \code{"multinom"}, this indicates 
     whether the upper tail of the personal income should be simulated by random 
     draws from a (truncated) generalized Pareto distribution rather than a 
@@ -133,7 +138,7 @@ set.seed(1234)  # for reproducibility
 data(eusilcS)   # load sample data
 
 # multinomial model with random draws
-eusilcM <- simEUSILC(eusilcS, upper = 200000)
+eusilcM <- simEUSILC(eusilcS, upper = 200000, equidist = FALSE)
 summary(eusilcM)
 
 # two-step regression

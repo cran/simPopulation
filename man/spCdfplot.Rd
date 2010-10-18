@@ -77,7 +77,7 @@ spCdfplot(x, \dots)
 set.seed(1234)  # for reproducibility
 data(eusilcS)   # load sample data
 # multinomial model with random draws
-eusilcM <- simEUSILC(eusilcS, upper = 200000)
+eusilcM <- simEUSILC(eusilcS, upper = 200000, equidist = FALSE)
 # two-step regression
 eusilcT <- simEUSILC(eusilcS, method = "twostep")
 # plot results by gender

@@ -10,7 +10,7 @@
 }
 \usage{
 getBreaks(x, weights = NULL, zeros = TRUE, 
-          lower = NULL, upper = NULL)
+          lower = NULL, upper = NULL, equidist = TRUE)
 }
 \arguments{
   \item{x}{a numeric vector to be categorized.}
@@ -20,13 +20,24 @@ getBreaks(x, weights = NULL, zeros = TRUE,
     affects the behavior of the function.}
   \item{lower, upper}{optional numeric values specifying lower and upper bounds 
     other than minimum and maximum of \code{x}, respectively.}
+  \item{equidist}{a logical indicating whether the (positive) breakpoints 
+    should be equidistant or whether there should be refinements in the lower 
+    and upper tail (see \dQuote{Details}).}
 }
 \details{
-  If \code{zeros} is \code{TRUE}, the 0\%, 10\%, \dots, 90\% quantiles of the 
-  negative values and the 10\%, 20\%, \dots, 100\% of the positive values are 
-  computed.  These quantiles are then used as breakpoints together with 0.  If
-  \code{zeros} is not \code{TRUE}, on the other hand, the 0\%, 10\%, \dots, 
+  If \code{equidist} is \code{TRUE}, the behavior is as follows.  If 
+  \code{zeros} is \code{TRUE} as well, the 0\%, 10\%, \dots, 90\% quantiles of 
+  the negative values and the 10\%, 20\%, \dots, 100\% of the positive values 
+  are computed.  These quantiles are then used as breakpoints together with 0.  
+  If \code{zeros} is not \code{TRUE}, on the other hand, the 0\%, 10\%, \dots, 
   100\% quantiles of all values are used.
+  
+  If \code{equidist} is not \code{TRUE}, the behavior is as follows.  If 
+  \code{zeros} is not \code{TRUE}, the 1\%, 5\%, 10\%, 20\%, 40\%, 60\%, 80\%, 
+  90\%, 95\% and 99\% quantiles of all values are used for the inner part of 
+  the data (instead of the  equidistant 10\%, \dots, 90\% quantiles).  If 
+  \code{zeros} is \code{TRUE}, these quantiles are only used for the positive 
+  values while the quantiles of the negative values remain equidistant.  
   
   Note that duplicated values among the quantiles are discarded and that the 
   minimum and maximum are replaced with \code{lower} and \code{upper}, 
@@ -47,7 +58,11 @@ getBreaks(x, weights = NULL, zeros = TRUE,
 \examples{
 data(eusilcS)
 
-## semi-continuous variable
+## semi-continuous variable, positive breakpoints equidistant
 getBreaks(eusilcS$netIncome, weights=eusilcS$rb050)
+
+## semi-continuous variable, positive breakpoints not equidistant
+getBreaks(eusilcS$netIncome, weights=eusilcS$rb050, 
+    equidist = FALSE)
 }
 \keyword{manip}
