@@ -70,14 +70,14 @@ generation of diagnostic plots for the simulated population data is illustrated.
 
 %% set some default options
 <<echo=FALSE, results=hide>>=
-library(lattice)
+library("lattice")
 lattice.options(default.theme = canonical.theme(color = FALSE))
 sl <- trellis.par.get("superpose.line")
 sl$col[1] <- "#A9A9A9"  # set first color to dark grey
 rl <- trellis.par.get("reference.line")
 rl$lty <- 2
 trellis.par.set(superpose.line=sl, reference.line=rl)
-options(width=75)
+options(width=75, prompt="R> ")
 @
 
 %% specify folder and name for Sweave graphics
@@ -147,12 +147,12 @@ seed for the random number generator in the examples to make the results
 reproducible.
 % ----------
 <<results=hide>>=
-library(simPopulation)
-data(eusilcS)
+library("simPopulation")
+data("eusilcS")
 seed <- 1234
 @
 
-\begin{table}
+\begin{table}[t!]
 \centering
 \caption{Variables of the EU-SILC example data in \pkg{simPopulation}.}
 \label{tab:var}
@@ -339,7 +339,7 @@ spMosaic(c("rb090", "pl030", "pb220a"), "rb050", eusilcS,
     eusilcP, labeling = lab)
 @
 
-\begin{figure}
+\begin{figure}[t!]
 \begin{center}
 \setkeys{Gin}{width=0.8\textwidth}
 <<echo=FALSE, results=hide, fig=TRUE, width=8, height=4.25>>=
@@ -421,7 +421,7 @@ spCdfplot("netIncome", "rb050", dataS=eusilcS, dataP=listP, xlim=c(0, q))
 spBwplot("netIncome", "rb050", dataS=eusilcS, dataP=listP, pch="|")
 @
 
-\begin{figure}
+\begin{figure}[t!]
 \begin{center}
 \setkeys{Gin}{width=0.4\textwidth}
 <<echo=FALSE, results=hide>>=

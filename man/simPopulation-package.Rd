@@ -13,8 +13,8 @@ to EU-SILC.
 \tabular{ll}{
 Package: \tab simPopulation\cr
 Type: \tab Package\cr
-Version: \tab 0.2\cr
-Date: \tab 2010-10-18\cr
+Version: \tab 0.2.1\cr
+Date: \tab 2010-10-19\cr
 Depends: \tab R(>= 2.7.1), nnet, POT, lattice, vcd\cr
 Imports: \tab lattice, vcd\cr
 License: \tab GPL (>= 2)\cr

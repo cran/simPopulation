@@ -1,3 +1,8 @@
+Changes in simPopulation version 0.2.1
+    
+    + small changes in vignette.
+
+
 Changes in simPopulation version 0.2
     
     + new argument 'equidist' in 'getBreaks', 'simContinuous' and 'simEUSILC' 
