@@ -52,6 +52,12 @@ simCategorical(dataS, dataP, w = "rb050", strata = "db040",
 \note{
   The basic household structure needs to be simulated beforehand with the 
   function \code{\link{simStructure}}.
+  
+  Parts of the function were re-implemented with package version 0.3.  For the 
+  method based on multinomial log-linear models, the function is now much more 
+  memory-efficient and faster if there is a large number of possible 
+  combinations in the categorical predictor variables.  Nevertheless, results 
+  may be different from previous versions of the package.
 }
 \seealso{
   \code{\link{simStructure}}, \code{\link{simContinuous}}, 

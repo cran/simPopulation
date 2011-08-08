@@ -5,7 +5,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% almost as usual
-\author{Andreas Alfons\\Vienna University of\\Technology \And Matthias Templ\\Vienna University of\\Technology,\\Statistics Austria \And Peter Filzmoser\\Vienna University of\\Technology}
+\author{Andreas Alfons\\K.U.Leuven \And Matthias Templ\\Vienna University of\\Technology,\\Statistics Austria \And Peter Filzmoser\\Vienna University of\\Technology}
 \title{Simulation of EU-SILC Population Data: Using the \proglang{R} Package \pkg{simPopulation}}
 
 %% for pretty printing and a nice hypersummary also set:
@@ -39,12 +39,13 @@ generation of diagnostic plots for the simulated population data is illustrated.
 %% in the following format:
 \Address{
   Andreas Alfons\\
-  Department of Statistics and Probability Theory\\
-  Vienna University of Technology\\
-  Wiedner Hauptstra\ss e 7\\
-  1040 Vienna, Austria\\
-  E-mail: \email{alfons@statistik.tuwien.ac.at}\\
-  URL: \url{http://www.statistik.tuwien.ac.at/public/alfons/}
+  ORSTAT Research Center\\
+  Faculty of Business and Economics\\ 
+  K.U.Leuven\\
+  Naamsestraat 69\\
+  3000 Leuven, Belgium\\
+  E-mail: \email{andreas.alfons@econ.kuleuven.be}\\
+  URL: \url{http://www.econ.kuleuven.be/andreas.alfons/public/}
 }
 %% It is also possible to add a telephone and fax number
 %% before the e-mail in the following format:
@@ -81,7 +82,7 @@ options(width=75, prompt="R> ")
 @
 
 %% specify folder and name for Sweave graphics
-\SweaveOpts{prefix.string=figures/fig}
+%\SweaveOpts{prefix.string=figures/fig}
 
 
 % ------------
@@ -90,10 +91,10 @@ options(width=75, prompt="R> ")
 
 \section{Introduction}
 
-This package vignette is a companion to \citet{alfons10a} that shows how the 
+This package vignette is a companion to \citet{alfons11b} that shows how the 
 proposed framework for the simulation of population data can be applied in 
 \proglang{R} \citep{R10} using the package \pkg{simPopulation} 
-\citep{alfons10h}. The data simulation framework consists of four steps:
+\citep{simPopulation}. The data simulation framework consists of four steps:
 \begin{enumerate}
   \item Setup of the household structure
   \item Simulation of categorical variables
@@ -103,7 +104,7 @@ proposed framework for the simulation of population data can be applied in
 Note that this vignette does not motivate, describe or evaluate the statistical 
 methodology of the framework. Instead it is focused on the \proglang{R} code to 
 generate synthetic population data and produce diagnostic plots. For details on 
-the statistical methodology, the reader is referred to \citet{alfons10a}.
+the statistical methodology, the reader is referred to \citet{alfons11b}.
 
 The \emph{European Union Statistics on Income and Living Conditions} (EU-SILC) 
 is panel survey conducted in European countries and serves as data basis for 
@@ -112,7 +113,7 @@ complex and contain detailed information on the income of the sampled
 individuals and households. More information on EU-SILC can be found in 
 \citet{EU-SILC04b}. 
 
-In \citet{alfons10a}, three methods for the simulation of the net income of the 
+In \citet{alfons11b}, three methods for the simulation of the net income of the 
 individuals in the population are proposed and analyzed:
 \begin{description}
   \item[MP] Multinomial logistic regression models with random draws from the 
@@ -131,12 +132,12 @@ components is carried out with the same parameter settings, the results of
 course depend on the simulated net income.
 
 It is important to note that the original Austrian EU-SILC sample provided by 
-Statistics Austria and used in \citet{alfons10a} is confidential, hence the 
+Statistics Austria and used in \citet{alfons11b} is confidential, hence the 
 results presented there cannot be reproduced in this vignette. Nevertheless, 
 the code for such an analysis is presented here using the example data from 
 the package, which has been synthetically generated itself. In fact, this 
 example data set is a sample drawn from one of the populations generated in 
-\citet{alfons10a}. However, the sample weights have been modified such that the 
+\citet{alfons11b}. However, the sample weights have been modified such that the 
 size of the resulting populations is about $1\%$ of the real Austrian 
 population in order to keep the computation time low. Table~\ref{tab:var} lists 
 the variables of the example data used in the code examples.
@@ -214,7 +215,7 @@ A convenient way of generating synthetic EU-SILC population data is provided by
 the wrapper function \code{simEUSILC()}, which performs the four steps of the 
 data simulation procedure at once. For each step, the names of the variables to 
 be simulated can be supplied. However, the default values for the respective 
-arguments are given by the variables names used in \citet{alfons10a}. Since the 
+arguments are given by the variables names used in \citet{alfons11b}. Since the 
 same names are used in the example data, the complex procedures for the three 
 different methods can be carried out with very simple commands.
 % ----------
@@ -230,7 +231,7 @@ Note that the default is to use the MP procedure. An upper bound for the net
 income is supplied using the argument \code{upper}, while the argument 
 \code{equidist} is set to \code{FALSE} so that the breakpoints for the 
 discretization of the net income are given by quantiles with non-equidistant 
-probabilities as described in \citet{alfons10a}. The twostep regression 
+probabilities as described in \citet{alfons11b}. The twostep regression 
 approaches are performed by setting \code{method = "twostep"}, in which case 
 the logical argument \code{residuals} specifies whether variability should be 
 added by random draws from the residuals (TR method, the default) or from a 
@@ -445,7 +446,7 @@ the whiskers are not plotted.}
 \end{figure}
 
 One of the main requirements in the simulation of population data is that 
-heterogeneities between subgroups are reflected \citep[see][]{alfons10a}. Since 
+heterogeneities between subgroups are reflected \citep[see][]{alfons11b}. Since 
 \code{spCdfplot()} and \code{spBwplot()} are based on \pkg{lattice}, this can 
 easily be checked by producing conditional plots. With the following commands, 
 the box-and-whisker plots in Figure~\ref{fig:cond} are produced. The 
@@ -499,7 +500,7 @@ first. With the function \code{getBreaks()}, default breakpoints based on
 quantiles are computed. In this example, the argument \code{upper} is set to 
 \code{Inf} to avoid problems with different maximum values in the three 
 synthetic populations, and the argument \code{equidist} is set to \code{FALSE} 
-such that non-equidistant probabilities as described in \citet{alfons10a} are 
+such that non-equidistant probabilities as described in \citet{alfons11b} are 
 used for the calculation of the quantiles.
 % ----------
 <<keep.source=TRUE>>=
@@ -573,7 +574,7 @@ In this vignette, the use of \pkg{simPopulation} for simulating population data
 has been demonstrated in an application to the EU-SILC example data from the 
 package. Both the simulation of synthetic population data and the generation of 
 diagnostic plots have been illustrated in a similar analysis as in 
-\citet{alfons10a}.
+\citet{alfons11b}.
 
 The code examples show that the functions are easy to use and that the 
 arguments have sensible default values. Nevertheless, the behavior of the 

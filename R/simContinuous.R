@@ -30,8 +30,9 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
     zeros <- isTRUE(zeros)
     log <- isTRUE(log)
     # check data
-    if(all(varNames %in% colnames(dataS))) dataS <- dataS[, varNames]
-    else stop("undefined variables in the sample data")
+    if(all(varNames %in% colnames(dataS))) {
+		dataS <- dataS[, varNames]
+	} else stop("undefined variables in the sample data")
     if(!all(c(strata, basic) %in% colnames(dataP))) {
         stop("undefined variables in the population data")
     }
@@ -82,8 +83,8 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
                         checkBreaks(breaks)
                         breaks <- c(unique(breaks[breaks < 0]), 0)
                     } else {
-                        breaks <- getBreaks(additionalS[neg], 
-                            dataS[neg, w], zeros=TRUE, lower, upper)
+                        breaks <- getBreaks(additionalS[neg], dataS[neg, w], 
+							zeros=TRUE, lower, upper)
                     }
                     if(zeros || length(breaks) > 2) {
                         useMultinom <- TRUE
@@ -119,11 +120,17 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
     # preparations for formulas and models
     predNames <- basic  # names of predictor variables
     fpred <- paste(predNames, collapse = " + ")  # for formula
-    # all possible combinations of the predictor variables 
-    # within the sample are computed
-    grid <- expand.grid(lapply(dataS[, predNames, drop=FALSE], levels))
-    gridNames <- apply(grid, 1, paste, collapse=".")
-    
+	# check if population data contains factor levels that do not exist 
+	# in the sample
+	newLevels <- lapply(predNames, 
+		function(nam) {
+			levelsS <- levels(dataS[, nam])
+			levelsP <- levels(dataP[, nam])
+			levelsP[!(levelsP %in% levelsS)]
+		})
+	hasNewLevels <- sapply(newLevels, length) > 0
+	excludeLevels <- any(hasNewLevels)
+	
     ## preparations for multinomial or binomial logit model
     if(useMultinom || useLogit) {
         name <- getCatName(additional)
@@ -143,63 +150,85 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
         # TODO: share code with 'simCategorical'
         valuesCat <- lapply(levels(dataS[, strata]), 
             function(s) {
-                # sample data
-                dataSample <- dataS[dataS[, strata] == s,]
-                if(!nrow(dataSample)) return(character())
-                # population data
-                dataPop <- dataP[indStrata[[s]],]
-                predPop <- dataPop[, predNames, drop=FALSE]
-                # combinations in the stratum of the population need to be 
-                # computed for prediction
-                # in sample, observations with NAs have been removed to fit the 
-                # model, hence population can have additional levels
-                # on the other hand, not all possible combinations (within the 
-                # sample) need to be represented in the current stratum of the 
-                # population
-                indGrid <- split(indStrata[[s]], predPop, drop=TRUE)
-                indGridNames <- names(indGrid)
-                whichGrid <- which(gridNames %in% indGridNames) 
-                whichIndGrid <- which(indGridNames %in% gridNames) 
-                ncomb <- as.integer(sapply(indGrid[whichIndGrid], length))
-                # fit multinomial model and predict probabilities
-                # command needs to be constructed as string
-                command <- paste("suppressWarnings(multinom(", fstring, 
-                    ", weights=", w, ", data=dataSample, trace=FALSE", 
-                    ", maxit=maxit, MaxNWts=MaxNWts))", sep="")
-                mod <- eval(parse(text=command))
-                probs <- predict(mod, newdata=grid[whichGrid,], type="probs")
-                # ensure it works for missing levels of response
-                ind <- as.integer(which(table(dataSample[, name]) > 0))
-                if(length(ind) > 2 && length(whichGrid) == 1) probs <- t(probs)
-                # censor probabilities to account for structural zeros
-                if(!is.null(censor) && !is.null(dim(probs))) {
-                    if(!is.list(censor) || 
-                            !all(sapply(censor, inherits, "data.frame"))) {
-                        stop("'censor' must be a list of data.frames")
-                    }
-                    censor <- censor[names(censor) %in% colnames(probs)]
-                    if(length(censor)) {
-                        pNames <- gridNames[whichGrid]
-                        for(i in 1:length(censor)) {
-                            cNames <- apply(censor[[i]], 1, paste, collapse=".")
-                            set0 <- which(pNames %in% cNames)
-                            probs[set0, names(censor)[i]] <- 0
-                        }
-                    }
-                }
-                # local function for sampling from probabilities
-                if(length(ind) == 1) {
-                    resample <- function(k, n, p) rep.int(1, n[k])
-                } else if(length(ind) == 2) {
-                    resample <- function(k, n, p) spSample(n[k], c(1-p[k],p[k]))
-                } else resample <- function(k, n, p) spSample(n[k], p[k,])
-                # generate realizations for each combination
-                sim <- as.list(rep.int(NA, length(indGrid)))
-                sim[whichIndGrid] <- lapply(1:length(ncomb), 
-                    resample, ncomb, probs)
-                sim <- unsplit(sim, predPop, drop=TRUE)
-                # return realizations
-                levels(response)[ind][sim]
+				# sample data
+				dataSample <- dataS[dataS[, strata] == s, , drop=FALSE]
+				if(!nrow(dataSample)) return(character())
+				# population data
+				dataPop <- dataP[indStrata[[s]], predNames, drop=FALSE]
+				# unique combinations in the stratum of the population need 
+				# to be computed for prediction
+				indGrid <- split(1:nrow(dataPop), dataPop, drop=TRUE)
+				grid <- dataPop[sapply(indGrid, function(i) i[1]), , drop=FALSE]
+				# in sample, observations with NAs have been removed to fit the 
+				# model, hence population can have additional levels
+				# these need to be removed since those probabilities cannot 
+				# be predicted from the model
+				if(excludeLevels) {
+					exclude <- mapply(function(pop, new) pop %in% new, 
+						pop=grid[, hasNewLevels, drop=FALSE], 
+						new=newLevels[hasNewLevels])
+					if(is.null(dim(exclude))) {
+						exclude <- which(any(exclude))
+					} else exclude <- which(apply(exclude, 1, any))
+				} else exclude <- integer()
+				# fit multinomial model
+				# command needs to be constructed as string
+				# this is actually a pretty ugly way of fitting the model
+				command <- paste("suppressWarnings(multinom(", fstring, 
+					", weights=", w, ", data=dataSample, trace=FALSE", 
+					", maxit=maxit, MaxNWts=MaxNWts))", sep="")
+				mod <- eval(parse(text=command))  # fitted model
+				# predict probabilities
+				if(length(exclude) == 0) {
+					probs <- predict(mod, newdata=grid, type="probs")
+				} else {
+					probs <- predict(mod, newdata=grid[-exclude, , drop=FALSE], 
+						type="probs")
+				}
+				# ensure it works for missing levels of response
+				ind <- as.integer(which(table(dataSample[, name]) > 0))
+				if(length(ind) > 2 && (nrow(grid)-length(exclude)) == 1) {
+					probs <- t(probs)
+				}
+				# censor probabilities to account for structural zeros
+				if(!is.null(censor) && !is.null(dim(probs))) {
+					if(!is.list(censor) || 
+						!all(sapply(censor, inherits, "data.frame"))) {
+						stop("'censor' must be a list of data.frames")
+					}
+					censor <- censor[names(censor) %in% colnames(probs)]
+					if(length(censor)) {
+						if(length(exclude) == 0) {
+							pNames <- names(indGrid) 
+						} else pNames <- names(indGrid)[exclude]
+						for(i in 1:length(censor)) {
+							cNames <- apply(censor[[i]], 1, paste, collapse=".")
+							set0 <- which(pNames %in% cNames)
+							probs[set0, names(censor)[i]] <- 0
+							# FIXME: if all probabilities of a row are zero, 
+							#        set non-censored probabilities non-zero
+						}
+					}
+				}
+				# local function for sampling from probabilities
+				if(length(ind) == 1) {
+					resample <- function(k, n, p) rep.int(1, n[k])
+				} else if(length(ind) == 2) {
+					resample <- function(k, n, p) spSample(n[k], c(1-p[k],p[k]))
+				} else resample <- function(k, n, p) spSample(n[k], p[k,])
+				# generate realizations for each combination
+				sim <- as.list(rep.int(NA, length(indGrid)))
+				if(length(exclude) == 0) {
+					ncomb <- as.integer(sapply(indGrid, length))
+					sim <- lapply(1:length(ncomb), resample, ncomb, probs)
+				} else {
+					ncomb <- as.integer(sapply(indGrid[-exclude], length))
+					sim[-exclude] <- lapply(1:length(ncomb), 
+						resample, ncomb, probs)
+				}
+				sim <- unsplit(sim, dataPop, drop=TRUE)
+				# return realizations
+				levels(response)[ind][sim]
             })
         valuesCat <- factor(unsplit(valuesCat, dataP[, strata, drop=FALSE]), 
             levels=levels(response))
@@ -226,8 +255,9 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
             nbreaks <- length(breaks)
             if(gpd) {
                 if(is.null(threshold)) {
-                    if(!haveBreaks && !isTRUE(equidist)) ngpd <- nbreaks-2
-                    else ngpd <- nbreaks-1
+                    if(!haveBreaks && !isTRUE(equidist)) {
+						ngpd <- nbreaks-2
+					} else ngpd <- nbreaks-1
                 } else if(any(tmp <- breaks >= threshold)) ngpd <- min(which(tmp))
                 else ngpd <- nbreaks
             } else ngpd <- nbreaks
@@ -258,8 +288,9 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
         
     } else if(useLogit) {
         ## some preparations
-        if(log && is.null(const) && haveNeg) indS <- additionalS > 0 
-        else indS <- additionalS != 0
+        if(log && is.null(const) && haveNeg) {
+			indS <- additionalS > 0 
+		} else indS <- additionalS != 0
         dataS[, name] <- as.integer(indS)
         formula <- as.formula(fstring)  # formula for model
         # auxiliary model for all strata (used in case of empty combinations)   
@@ -268,8 +299,8 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
             if(length(tol) != 1 || tol <= 0) {
                 stop("'tol' must be a single small positive value")
             }
-            X <- model.matrix(formula, data=dataS)[, -1]
-            y <- dataS[, name]
+			X <- model.matrix(formula, data=dataS)
+			y <- dataS[, name]
             weights <- dataS[, w]
             mod <- logitreg(X, y, weights=weights)
             par <- mod$par
@@ -281,45 +312,61 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
                 # sample data
                 dataSample <- dataS[dataS[, strata] == s, , drop=FALSE]
                 if(!nrow(dataSample)) return(numeric())
-                # population data
-                dataPop <- dataP[indStrata[[s]], , drop=FALSE]
-                predPop <- dataPop[, predNames, drop=FALSE]
-                # combinations in the stratum of the population need to be 
-                # computed for prediction
-                # in sample, observations with NAs have been removed to fit the 
-                # model, hence population can have additional levels
-                # on the other hand, not all possible combinations (within the 
-                # sample) need to be represented in the current stratum of the 
-                # population
-                indGrid <- split(indStrata[[s]], predPop, drop=TRUE)
-                indGridNames <- names(indGrid)
-                whichGrid <- which(gridNames %in% indGridNames) 
-                whichIndGrid <- which(indGridNames %in% gridNames) 
-                ncomb <- as.integer(sapply(indGrid[whichIndGrid], length))
-                # add dummy variable to 'gridTmp' for the use of 'model.matrix' 
-                gridTmp <- cbind(grid[whichGrid,], 1)
-                colnames(gridTmp) <- c(predNames, name)
-                # fit logit model
-                Xnew <- model.matrix(formula, data=gridTmp)
-                X <- model.matrix(formula, data=dataSample)[, -1]
-                y <- dataSample[, name]
-                weights <- dataSample[, w]
-                mod <- logitreg(X, y, weights=weights)
-                # add parameters from auxiliary model if necessary
-                if(useAux) {
-                    indPar <- abs(mod$par) < tol
-                    mod$par[indPar] <- par[indPar]
-                }
-                # predict probabilities
-                tmp <- exp(Xnew %*% mod$par)
-                # avoid integer overflow
-                p <- ifelse(is.infinite(tmp), 1, as.numeric(tmp / (1 + tmp)))
-                # generate realizations for each combination
-                sim <- as.list(rep.int(NA, length(indGrid)))
-                sim[whichIndGrid] <- lapply(1:length(ncomb), 
-                    function(k) spSample(ncomb[k], c(1-p[k], p[k])) - 1)
-                # return realizations
-                unsplit(sim, predPop, drop=TRUE)
+				# population data
+				dataPop <- dataP[indStrata[[s]], predNames, drop=FALSE]
+				# unique combinations in the stratum of the population need 
+				# to be computed for prediction
+				indGrid <- split(1:nrow(dataPop), dataPop, drop=TRUE)
+				grid <- dataPop[sapply(indGrid, function(i) i[1]), , drop=FALSE]
+				# in sample, observations with NAs have been removed to fit the 
+				# model, hence population can have additional levels
+				# these need to be removed since those probabilities cannot 
+				# be predicted from the model
+				if(excludeLevels) {
+					exclude <- mapply(function(pop, new) pop %in% new, 
+						pop=grid[, hasNewLevels, drop=FALSE], 
+						new=newLevels[hasNewLevels])
+					if(is.null(dim(exclude))) {
+						exclude <- which(any(exclude))
+					} else exclude <- which(apply(exclude, 1, any))
+					if(length(exclude) > 0) grid <- grid[exclude, , drop=FALSE]
+					for(j in predNames[hasNewLevels]) {
+						# drop new factor levels
+						grid[, j] <- factor(as.character(grid[, j]), 
+							levels=levels(dataS[, j]))
+					}
+				}
+				# add 0 variable to combinations for use of 'model.matrix' 
+				Xnew <- cbind(grid, 0)
+				names(Xnew) <- c(predNames, name)
+				Xnew <- model.matrix(formula, data=Xnew)
+				# fit logit model
+				X <- model.matrix(formula, data=dataSample)
+				y <- dataSample[, name]
+				weights <- dataSample[, w]
+				mod <- logitreg(X, y, weights=weights)
+				# add parameters from auxiliary model if necessary
+				if(useAux) {
+					indPar <- abs(mod$par) < tol
+					mod$par[indPar] <- par[indPar]
+				}
+				# predict probabilities
+				tmp <- exp(Xnew %*% mod$par)
+				# avoid integer overflow
+				p <- ifelse(is.infinite(tmp), 1, as.numeric(tmp / (1 + tmp)))
+				# generate realizations for each combination
+				if(length(exclude) == 0) {
+					ncomb <- as.integer(sapply(indGrid, length))
+					sim <- lapply(1:length(ncomb), 
+						function(k) spSample(ncomb[k], c(1-p[k], p[k])) - 1)
+				} else {
+					ncomb <- as.integer(sapply(indGrid[-exclude], length))
+					sim <- as.list(rep.int(NA, length(indGrid)))
+					sim[-exclude] <- lapply(1:length(ncomb), 
+						function(k) spSample(ncomb[k], c(1-p[k], p[k])) - 1)
+				}
+				# return realizations
+				unsplit(sim, dataPop, drop=TRUE)
             })
         valuesCat <- unsplit(valuesCat, dataP[, strata, drop=FALSE])
     }
@@ -348,7 +395,7 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
             p <- c(alpha[1], 1-alpha[2])
             bounds <- quantileWt(additionalS, dataS[, w], p)
             select <- additionalS > bounds[1] & additionalS < bounds[2]
-            dataSample <- dataS[select,]
+            dataSample <- dataS[select, , drop=FALSE]
             
             # check if all relevant levels of predictor variables are still 
             # contained in sample after trimming
@@ -381,40 +428,52 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
                 dataSample <- dataSample[dataSample[, strata] == s, , drop=FALSE]
                 if(!nrow(dataSample)) return(numeric())
                 # population data
-                dataPop <- dataPop[indStrata[[s]], , drop=FALSE]
-                predPop <- dataPop[, predNames, drop=FALSE]
-                # combinations in the stratum of the population need to be 
-                # computed for prediction
-                # in sample, observations with NAs have been removed to fit the 
-                # model, hence population can have additional levels
-                # on the other hand, not all possible combinations (within the 
-                # sample) need to be represented in the current stratum of the 
-                # population
-                # TODO: we don't need the indices, it might be faster to use
-                #       'expand.grid' here
-                indGrid <- split(indStrata[[s]], predPop, drop=TRUE)
-                indGridNames <- names(indGrid)
-                whichGrid <- which(gridNames %in% indGridNames) 
-                whichIndGrid <- which(indGridNames %in% gridNames) 
-                # add dummy variable to 'gridTmp' for the use of 'model.matrix' 
-                gridTmp <- cbind(grid[whichGrid,], 1)
-                colnames(gridTmp) <- c(predNames, additional)
-                # fit linear model
-                #weights <- dataSample[, w]
-                # command needs to be constructed as string
-                command <- paste("lm(", fstring, 
-                    ", weights=", w, ", data=dataSample)", sep="")
+				dataPop <- dataPop[indStrata[[s]], predNames, drop=FALSE]
+				# unique combinations in the stratum of the population need 
+				# to be computed for prediction
+				indGrid <- split(1:nrow(dataPop), dataPop, drop=TRUE)
+				grid <- dataPop[sapply(indGrid, function(i) i[1]), , drop=FALSE]
+				# in sample, observations with NAs have been removed to fit the 
+				# model, hence population can have additional levels
+				# these need to be removed since those probabilities cannot 
+				# be predicted from the model
+				if(excludeLevels) {
+					exclude <- mapply(function(pop, new) pop %in% new, 
+						pop=grid[, hasNewLevels, drop=FALSE], 
+						new=newLevels[hasNewLevels])
+					if(is.null(dim(exclude))) {
+						exclude <- which(any(exclude))
+					} else exclude <- which(apply(exclude, 1, any))
+					if(length(exclude) > 0) grid <- grid[exclude, , drop=FALSE]
+					for(j in predNames[hasNewLevels]) {
+						# drop new factor levels
+						grid[, j] <- factor(as.character(grid[, j]), 
+							levels=levels(dataS[, j]))
+					}
+				}
+				# fit linear model
+				#weights <- dataSample[, w]
+				# command needs to be constructed as string
+				command <- paste("lm(", fstring, 
+					", weights=", w, ", data=dataSample)", sep="")
                 mod <- eval(parse(text=command))
                 # add coefficients from auxiliary model if necessary
                 tmp <- coef
                 coef[names(coef(mod))] <- coef(mod)
                 mod$coefficients <- coef
                 # prediction
-                newdata <- model.matrix(formula, data=gridTmp)
-                pred <- as.list(rep.int(NA, length(indGrid)))
-                pred[whichIndGrid] <- spPredict(mod, newdata)
-                pred <- unsplit(pred, predPop, drop=TRUE)
-                # add error terms
+				# add 0 variable to combinations for use of 'model.matrix' 
+				newdata <- cbind(grid, 0)
+				names(newdata) <- c(predNames, additional)
+				newdata <- model.matrix(formula, data=newdata)
+				if(length(exclude) == 0) {
+					pred <- spPredict(mod, newdata)
+				} else {
+					pred <- as.list(rep.int(NA, length(indGrid)))
+					pred[-exclude] <- spPredict(mod, newdata)
+				}
+				pred <- unsplit(pred, dataPop, drop=TRUE)
+				# add error terms
                 if(residuals) {
                     error <- sample(residuals(mod), 
                         size=nrow(dataPop), replace=TRUE)

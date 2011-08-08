@@ -1,24 +1,35 @@
+Changes in simPopulation version 0.3
+    
+    + Functions 'simCategorical' and 'simContinuous' are now much more 
+      memory-efficient and faster if there is a large number of possible 
+      combinations in the categorical predictor variables.
+    
+    + Bugfix in 'simCategorical' regarding default value of basic variables.
+    
+    + Updated author affiliation.
+
+
 Changes in simPopulation version 0.2.1
     
-    + small changes in vignette.
+    + Small changes in vignette.
 
 
 Changes in simPopulation version 0.2
     
-    + new argument 'equidist' in 'getBreaks', 'simContinuous' and 'simEUSILC' 
+    + New argument 'equidist' in 'getBreaks', 'simContinuous' and 'simEUSILC' 
       indicating whether (positive) breakpoints should be equidistant.
     
-    + function 'continencyWt' is now generic and has an additional 'data.frame' 
+    + Function 'continencyWt' is now generic and has an additional 'data.frame' 
       method for computing pairwise contingency coefficients.
     
-    + added package vignette 'simPopulation-eusilc'.
+    + Added package vignette 'simPopulation-eusilc'.
     
     + Bugfix in 'simStructure': if 'hsize' is not supplied, the resulting 
       variable is now an integer instead of an array.
     
-    + new methods to choose from in 'simStructure' and 'simCategorical'.
+    + New methods to choose from in 'simStructure' and 'simCategorical'.
     
-    + new argument 'useNA' in 'tableWt' indicating whether to include extra NA 
+    + New argument 'useNA' in 'tableWt' indicating whether to include extra NA 
       levels in the table.
 
 

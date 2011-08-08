@@ -161,6 +161,11 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
   The basic household structure and any other categorical predictors need to 
   be simulated beforehand with the functions \code{\link{simStructure}} and 
   \code{\link{simCategorical}}, respectively.
+  
+  Parts of the function were re-implemented with package version 0.3.  The 
+  function is now much more memory-efficient and faster if there is a large 
+  number of possible combinations in the categorical predictor variables.  
+  Nevertheless, results may be different from previous versions of the package.
 }
 \seealso{
   \code{\link{simStructure}}, \code{\link{simCategorical}}, 

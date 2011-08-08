@@ -39,11 +39,6 @@ factorNA <- function(x, always = FALSE) {
     always <- isTRUE(always)
     if(is.factor(x)) {
         l <- levels(x)
-#        if(NA %in% l) x
-#        else if(always || any(is.na(x))) {
-#            l <- c(l, NA)
-#            factor(x, levels=c(levels(x), NA), exclude=c())
-#        } else x
         if(NA %in% l || !(always || any(is.na(x)))) x
         else {
             l <- c(l, NA)
@@ -59,8 +54,19 @@ factorNA <- function(x, always = FALSE) {
 
 ## get which observations contain NAs (and need to be excluded)
 getExclude <- function(x, ...) UseMethod("getExclude")
-getExclude.default <- function(x) which(is.na(x))
-getExclude.data.frame <- function(x) unique(which(is.na(x), arr.ind=TRUE)[, 1])
+getExclude.default <- function(x, ...) which(is.na(x))
+getExclude.data.frame <- function(x, ...) {
+	unique(which(is.na(x), arr.ind=TRUE)[, 1])
+}
+
+### exclude observations
+#excludeData <- function(x, exclude = NULL, ...) UseMethod("excludeData")
+#excludeData.default <- function(x, exclude = NULL, ...) {
+#	if(length(exclude) == 0) x else x[-exclude]
+#}
+#excludeData.data.frame <- function(x, exclude = NULL, ...) {
+#	if(length(exclude) == 0) x else x[-exclude, , drop=FALSE]
+#}
 
 
 ## get breakpoints for categorizing continuous or semi-continuous variables
@@ -154,26 +160,6 @@ getCatName <- function(name) paste(name, "Cat", sep="")
 
 
 ## truncated Pareto distribution
-#truncPareto <- function(n, loc, scale, shape, lower, upper) {
-#    # initializations
-#    x <- numeric(n)
-#    left <- n
-#    new  <- n
-#    # fit generalized pareto distribution with lower and upper bound
-#    while(left > 0) {
-#        xTmp <- rgpd(new, loc=loc, scale=scale, shape=shape)
-#        ind  <- which(xTmp > lower & xTmp <= upper)
-#        lind <- length(ind)
-#        if(left < lind) {
-#            ind <- ind[1:left]
-#            lind <- length(ind)
-#        }
-#        x[(n - left + 1):(n - left + lind)]  <- xTmp[ind]
-#        left <- left - lind
-#        if(lind > 0) new  <- new / lind * left
-#    }
-#    return(x)
-#}
 truncPareto <- function(n, loc, scale, shape, lower, upper) {
     # initializations
     x <- numeric(n)
@@ -193,33 +179,57 @@ truncPareto <- function(n, loc, scale, shape, lower, upper) {
 
 
 ## logit regression (designed for internal use, hence no error handling)
-logitreg <- function(x, y, weights = rep(1, length(y)), 
-    intercept = TRUE, start = rep(0, p), ...) {
-    # function to be minimized (log-likelihood)
-    fmin <- function(beta, X, y, w) {
-        p <- plogis(X %*% beta)
-        -sum(2 * w * ifelse(y, log(p), log(1-p)))
-    }
-    # gradient
-    gmin <- function(beta, X, y, w) {
-        eta <- as.numeric(X %*% beta)
-        p <- plogis(eta)
-        -2 * (w * dlogis(eta) * ifelse(y, 1/p, -1/(1-p))) %*% X
-    }
-    # some preparations
-    if(is.null(dim(x))) dim(x) <- c(length(x), 1)
-    dn <- dimnames(x)[[2]]
-    if(!length(dn)) dn <- paste("Var", 1:ncol(x), sep="")
-    p <- ncol(x) + intercept
-    if(intercept) {
-        x <- cbind(1,x)
-        dn <- c("(Intercept)", dn)
-    }
-    if(is.factor(y)) y <- (unclass(y) != 1)
-    # optimize and return result
-    fit <- optim(start, fmin, gmin, X = x, y = y, w = weights, method = "BFGS", ...)
-    names(fit$par) <- dn
-    return(fit)
+#logitreg <- function(x, y, weights = rep(1, length(y)), 
+#    intercept = TRUE, start = rep(0, p), ...) {
+#    # function to be minimized (log-likelihood)
+#    fmin <- function(beta, X, y, w) {
+#        p <- plogis(X %*% beta)
+#        -sum(2 * w * ifelse(y, log(p), log(1-p)))
+#    }
+#    # gradient
+#    gmin <- function(beta, X, y, w) {
+#        eta <- as.numeric(X %*% beta)
+#        p <- plogis(eta)
+#        -2 * (w * dlogis(eta) * ifelse(y, 1/p, -1/(1-p))) %*% X
+#    }
+#    # some preparations
+#    if(is.null(dim(x))) dim(x) <- c(length(x), 1)
+#    dn <- dimnames(x)[[2]]
+#    if(!length(dn)) dn <- paste("Var", 1:ncol(x), sep="")
+#    p <- ncol(x) + intercept
+#    if(intercept) {
+#        x <- cbind(1,x)
+#        dn <- c("(Intercept)", dn)
+#    }
+#    if(is.factor(y)) y <- (unclass(y) != 1)
+#    # optimize and return result
+#    fit <- optim(start, fmin, gmin, X = x, y = y, w = weights, method = "BFGS", ...)
+#    names(fit$par) <- dn
+#    return(fit)
+#}
+# intercept is assumed to be included in 'x'
+logitreg <- function(x, y, weights = rep(1, length(y)), start = rep(0, p), ...) {
+	# function to be minimized (log-likelihood)
+	fmin <- function(beta, X, y, w) {
+		p <- plogis(X %*% beta)
+		-sum(2 * w * ifelse(y, log(p), log(1-p)))
+	}
+	# gradient
+	gmin <- function(beta, X, y, w) {
+		eta <- as.numeric(X %*% beta)
+		p <- plogis(eta)
+		-2 * (w * dlogis(eta) * ifelse(y, 1/p, -1/(1-p))) %*% X
+	}
+	# some preparations
+	if(is.null(dim(x))) dim(x) <- c(length(x), 1)
+	dn <- dimnames(x)[[2]]
+	if(!length(dn)) dn <- paste("Var", 1:ncol(x), sep="")
+	p <- ncol(x)
+	if(is.factor(y)) y <- (unclass(y) != 1)
+	# optimize and return result
+	fit <- optim(start, fmin, gmin, X = x, y = y, w = weights, method = "BFGS", ...)
+	names(fit$par) <- dn
+	return(fit)
 }
 
 
