@@ -17,11 +17,13 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
               additional = "netIncome", 
               method = c("multinom", "lm"), zeros = TRUE, 
               breaks = NULL, lower = NULL, upper = NULL, 
-              equidist = TRUE, gpd = TRUE, threshold = NULL, 
-              est = "moments", censor = NULL, log = TRUE, 
-              const = NULL, alpha = 0.01, residuals = TRUE, 
-              keep = TRUE, maxit = 500, MaxNWts = 1500, 
-              tol = .Machine$double.eps^0.5, seed)
+              equidist = TRUE, probs = NULL, gpd = TRUE, 
+              threshold = NULL, est = "moments", limit = NULL, 
+              censor = NULL, log = TRUE, const = NULL, 
+              alpha = 0.01, residuals = TRUE, keep = TRUE, 
+              maxit = 500, MaxNWts = 1500, 
+              tol = .Machine$double.eps^0.5, 
+              eps = NULL, seed)
 }
 \arguments{
   \item{dataS}{a \code{data.frame} containing household survey data.}
@@ -53,8 +55,8 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
     step thereby uses a log-linear or multinomial log-linear model (see 
     \dQuote{Details}).}
   \item{breaks}{an optional numeric vector; if multinomial models are computed, 
-    this can be used to supply two or more breakpoints for categorizing the 
-    variable specified by \code{additional}.  If \code{NULL}, breakpoints are 
+    this can be used to supply two or more break points for categorizing the 
+    variable specified by \code{additional}.  If \code{NULL}, break points are 
     computed using weighted quantiles.}
   \item{lower, upper}{optional numeric values; if multinomial models are 
     computed and \code{breaks} is \code{NULL}, these can be used to specify 
@@ -63,8 +65,12 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
     (see below), \code{upper} defaults to \code{Inf}.}
   \item{equidist}{logical; if \code{method} is \code{"multinom"} and 
     \code{breaks} is \code{NULL}, this indicates whether the (positive) default 
-    breakpoints should be equidistant or whether there should be refinements in 
+    break points should be equidistant or whether there should be refinements in 
     the lower and upper tail (see \code{\link{getBreaks}}).}
+  \item{probs}{numeric vector with values in \eqn{[0, 1]}; if \code{method} is 
+    \code{"multinom"} and \code{breaks} is \code{NULL}, this gives 
+    probabilities for quantiles to be used as (positive) break points.  If 
+    supplied, this is preferred over \code{equidist}.}
   \item{gpd}{logical; if \code{method} is \code{"multinom"}, this indicates 
     whether the upper tail of the variable specified by \code{additional} 
     should be simulated by random draws from a (truncated) generalized Pareto 
@@ -74,15 +80,24 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
     generalized Pareto distribution.}
   \item{est}{a character string; if \code{method} is \code{"multinom"}, the 
     estimator to be used to fit the generalized Pareto distribution (see 
-    \code{\link[POT]{fitgpd}}).}
-  \item{censor}{an optional named list of \code{data.frame}s; if multinomial 
-    models are computed, this can be used to account for structural zeros.  The 
-    names of the list components specify the categories that should be 
-    censored.  For each of these categories, a \code{data.frame} containing 
-    levels of the predictor variables can be supplied.  The probability of the 
-    specified categories is set to 0 for the respective predictor levels.  
-    Currently, this is only implemented for more than two categories in the 
-    response.}
+    \code{\link[POT:fitGPD]{fitgpd}}).}
+  \item{limit}{an optional named list of lists; if multinomial models are 
+    computed, this can be used to account for structural zeros.    The names of 
+    the list components specify the predictor variables for which to limit the 
+    possible outcomes of the response.  For each predictor, a list containing 
+    the possible outcomes of the response for each category of the predictor 
+    can be supplied.  The probabilities of other outcomes conditional on 
+    combinations that contain the specified categories of the supplied 
+    predictors are set to 0.  Currently, this is only implemented for more than 
+    two categories in the response.}
+  \item{censor}{an optional named list of lists or \code{data.frame}s; if 
+    multinomial models are computed, this can be used to account for structural 
+    zeros.  The names of the list components specify the categories that should 
+    be censored.  For each of these categories, a list or \code{data.frame} 
+    containing levels of the predictor variables can be supplied.  The 
+    probability of the specified categories is set to 0 for the respective 
+    predictor levels.  Currently, this is only implemented for more than two 
+    categories in the response.}
   \item{log}{logical; if \code{method} is \code{"lm"}, this indicates whether 
     the linear model should be fitted to the logarithms of the variable 
     specified by \code{additional}.  The predicted values are then 
@@ -108,14 +123,18 @@ simContinuous(dataS, dataP, w = "rb050", strata = "db040",
   \item{maxit, MaxNWts}{control parameters to be passed to 
     \code{\link[nnet]{multinom}} and \code{\link[nnet]{nnet}}.  See the help 
     file for \code{\link[nnet]{nnet}}.}
-  \item{tol}{if \code{method} is \code{"lm"}, a small positive numeric value or 
-    \code{NULL}.  When fitting a log-linear model within a stratum, factor 
-    levels may not exist in the sample but are likely to exist in the 
-    population.  However, the coefficient for such factor levels will be 0.  
-    Therefore, coefficients smaller than \code{tol} in absolute value are 
-    replaced by coefficients from an auxiliary model that is fit to the whole 
-    sample.  If \code{NULL}, no auxiliary log-linear model is computed and no 
-    coefficients are replaced.}
+  \item{tol}{if \code{method} is \code{"lm"} and \code{zeros} is \code{TRUE}, a 
+    small positive numeric value or \code{NULL}.  When fitting a log-linear 
+    model within a stratum, factor levels may not exist in the sample but are 
+    likely to exist in the population.  However, the coefficient for such 
+    factor levels will be 0.  Therefore, coefficients smaller than \code{tol} 
+    in absolute value are replaced by coefficients from an auxiliary model that 
+    is fit to the whole sample.  If \code{NULL}, no auxiliary log-linear model 
+    is computed and no coefficients are replaced.}
+  \item{eps}{a small positive numeric value, or \code{NULL} (the default).  In 
+    the former case and if (multinomial) log-linear models are computed, 
+    estimated probabilities smaller than this are assumed to result from 
+    structural zeros and are set to exactly 0.}
   \item{seed}{optional; an integer value to be used as the seed of the random 
     number generator, or an integer vector containing the state of the random 
     number generator to be restored.}

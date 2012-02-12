@@ -10,11 +10,13 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
         additional = "netIncome", 
         method = c("multinom", "lm"), zeros = TRUE, 
         breaks = NULL, lower = NULL, upper = NULL, 
-        equidist = TRUE, gpd = TRUE, threshold = NULL, 
-        est = "moments", censor = NULL, log = TRUE, 
-        const = NULL, alpha = 0.01, residuals = TRUE, 
-        keep = TRUE, maxit = 500, MaxNWts = 1500, 
-        tol = .Machine$double.eps^0.5, seed) {
+        equidist = TRUE, probs = NULL, gpd = TRUE, 
+        threshold = NULL, est = "moments", limit = NULL, 
+        censor = NULL, log = TRUE, const = NULL, 
+        alpha = 0.01, residuals = TRUE, keep = TRUE, 
+        maxit = 500, MaxNWts = 1500, 
+        tol = .Machine$double.eps^0.5, 
+        eps = NULL, seed) {
     
     ## initializations
     if(!missing(seed)) set.seed(seed)  # set seed of random number generator
@@ -67,7 +69,7 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
         } else {
             if(is.null(upper) && gpd) upper <- Inf
             breaks <- getBreaks(additionalS, dataS[, w], 
-                zeros, lower, upper, equidist)
+                zeros, lower, upper, equidist, probs)
         }
     } else {
         useLm <- TRUE
@@ -185,31 +187,25 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
 					probs <- predict(mod, newdata=grid[-exclude, , drop=FALSE], 
 						type="probs")
 				}
+                # set too small probabilities to exactly 0
+                if(!is.null(eps)) {
+                    probs[probs < eps] <- 0
+                }
 				# ensure it works for missing levels of response
 				ind <- as.integer(which(table(dataSample[, name]) > 0))
 				if(length(ind) > 2 && (nrow(grid)-length(exclude)) == 1) {
 					probs <- t(probs)
 				}
-				# censor probabilities to account for structural zeros
-				if(!is.null(censor) && !is.null(dim(probs))) {
-					if(!is.list(censor) || 
-						!all(sapply(censor, inherits, "data.frame"))) {
-						stop("'censor' must be a list of data.frames")
-					}
-					censor <- censor[names(censor) %in% colnames(probs)]
-					if(length(censor)) {
-						if(length(exclude) == 0) {
-							pNames <- names(indGrid) 
-						} else pNames <- names(indGrid)[exclude]
-						for(i in 1:length(censor)) {
-							cNames <- apply(censor[[i]], 1, paste, collapse=".")
-							set0 <- which(pNames %in% cNames)
-							probs[set0, names(censor)[i]] <- 0
-							# FIXME: if all probabilities of a row are zero, 
-							#        set non-censored probabilities non-zero
-						}
-					}
-				}
+                # account for structural zeros
+                if((!is.null(limit) || !is.null(censor)) && !is.null(dim(probs))) {
+                    if(length(exclude) == 0) {
+                        probs <- adjustProbs(probs, grid, names(indGrid), 
+                            limit, censor)
+                    } else {
+                        probs <- adjustProbs(probs, grid[-exclude, , drop=FALSE], 
+                            names(indGrid)[-exclude], limit, censor)
+                    }
+                }
 				# local function for sampling from probabilities
 				if(length(ind) == 1) {
 					resample <- function(k, n, p) rep.int(1, n[k])
@@ -255,7 +251,7 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
             nbreaks <- length(breaks)
             if(gpd) {
                 if(is.null(threshold)) {
-                    if(!haveBreaks && !isTRUE(equidist)) {
+                    if(!haveBreaks && (!isTRUE(equidist) || !is.null(probs))) {
 						ngpd <- nbreaks-2
 					} else ngpd <- nbreaks-1
                 } else if(any(tmp <- breaks >= threshold)) ngpd <- min(which(tmp))
@@ -354,6 +350,10 @@ simContinuous <- function(dataS, dataP, w = "rb050", strata = "db040",
 				tmp <- exp(Xnew %*% mod$par)
 				# avoid integer overflow
 				p <- ifelse(is.infinite(tmp), 1, as.numeric(tmp / (1 + tmp)))
+                # set too small probabilities to exactly 0
+                if(!is.null(eps)) {
+                    p[p < eps] <- 0
+                }
 				# generate realizations for each combination
 				if(length(exclude) == 0) {
 					ncomb <- as.integer(sapply(indGrid, length))

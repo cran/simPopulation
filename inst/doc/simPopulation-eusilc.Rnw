@@ -5,7 +5,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% almost as usual
-\author{Andreas Alfons\\K.U.Leuven \And Matthias Templ\\Vienna University of\\Technology,\\Statistics Austria \And Peter Filzmoser\\Vienna University of\\Technology}
+\author{Andreas Alfons\\KU Leuven \And Matthias Templ\\Vienna University of\\Technology,\\Statistics Austria \And Peter Filzmoser\\Vienna University of\\Technology}
 \title{Simulation of EU-SILC Population Data: Using the \proglang{R} Package \pkg{simPopulation}}
 
 %% for pretty printing and a nice hypersummary also set:
@@ -41,7 +41,7 @@ generation of diagnostic plots for the simulated population data is illustrated.
   Andreas Alfons\\
   ORSTAT Research Center\\
   Faculty of Business and Economics\\ 
-  K.U.Leuven\\
+  KU Leuven\\
   Naamsestraat 69\\
   3000 Leuven, Belgium\\
   E-mail: \email{andreas.alfons@econ.kuleuven.be}\\
@@ -220,8 +220,8 @@ same names are used in the example data, the complex procedures for the three
 different methods can be carried out with very simple commands.
 % ----------
 <<>>=
-#<<eval=FALSE>>=
-eusilcMP <- simEUSILC(eusilcS, upper = 200000, equidist = FALSE, seed = seed)
+eusilcMP <- simEUSILC(eusilcS, upper = 200000, equidist = FALSE, 
+    seed = seed)
 eusilcTR <- simEUSILC(eusilcS, method = "twostep", seed = seed)
 eusilcTN <- simEUSILC(eusilcS, method = "twostep", residuals = FALSE, 
     seed = seed)
@@ -263,7 +263,6 @@ variables that define the household structure in addition to the household
 size (in this case age and gender).
 % ----------
 <<>>=
-#<<eval=FALSE>>=
 eusilcP <- simStructure(eusilcS, hid = "db030", w = "db090", 
     strata = "db040", additional = c("age", "rb090"))
 @
@@ -272,7 +271,6 @@ For the rest of the procedure, combined age categories are used for the
 individuals in order to reduce the computation time of the statistical models.
 % ----------
 <<>>=
-#<<eval=FALSE>>=
 breaks <- c(min(eusilcS$age), seq(15, 80, 5), max(eusilcS$age))
 eusilcS$ageCat <- as.character(cut(eusilcS$age, 
         breaks=breaks, include.lowest=TRUE))
@@ -374,19 +372,19 @@ so that the simulation of the income components can later on continue from
 there.
 % ----------
 <<>>=
-#<<eval=FALSE>>=
 seedP <- .Random.seed
 basic <- c(basic, "pl030", "pb220a")
-eusilcMP <- simContinuous(eusilcS, eusilcP, w = "rb050", strata = "db040", 
-    basic = basic, additional = "netIncome", upper = 200000, equidist = FALSE, 
-    seed=seedP)
+eusilcMP <- simContinuous(eusilcS, eusilcP, w = "rb050", 
+    strata = "db040", basic = basic, additional = "netIncome", 
+    upper = 200000, equidist = FALSE, seed=seedP)
 seedMP <- .Random.seed
-eusilcTR <- simContinuous(eusilcS, eusilcP, w = "rb050", strata = "db040", 
-    basic = basic, additional = "netIncome", method="lm", seed=seedP)
+eusilcTR <- simContinuous(eusilcS, eusilcP, w = "rb050", 
+    strata = "db040", basic = basic, additional = "netIncome", 
+    method="lm", seed=seedP)
 seedTR <- .Random.seed
-eusilcTN <- simContinuous(eusilcS, eusilcP, w = "rb050", strata = "db040", 
-    basic = basic, additional = "netIncome", method="lm", residuals=FALSE, 
-    seed=seedP)
+eusilcTN <- simContinuous(eusilcS, eusilcP, w = "rb050", 
+    strata = "db040", basic = basic, additional = "netIncome", 
+    method="lm", residuals=FALSE, seed=seedP)
 seedTN <- .Random.seed
 @
 
@@ -413,7 +411,7 @@ containing the three populations is supplied as the argument \code{dataP} of
 the plot functions.
 % ----------
 %<<>>
-<<eval=FALSE, >>=
+<<eval=FALSE>>=
 subset <- which(eusilcS[, "netIncome"] > 0)
 q <- quantileWt(eusilcS[subset, "netIncome"], 
     eusilcS[subset, "rb050"], probs = 0.99)
@@ -521,7 +519,6 @@ populations the seed of the random number generator is set to the corresponding
 state after the simulation of the net income.
 % ----------
 <<>>=
-#<<eval=FALSE>>=
 components <- c("py010n", "py050n", "py090n", 
         "py100n", "py110n", "py120n", "py130n", "py140n")
 eusilcMP <- simComponents(eusilcS, eusilcMP, w = "rb050", 

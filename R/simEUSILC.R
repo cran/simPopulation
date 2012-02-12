@@ -10,9 +10,9 @@ simEUSILC <- function(dataS, hid = "db030", wh = "db090",
         categorical = c("pl030", "pb220a"), 
         income = "netIncome", method = c("multinom", "twostep"), 
         breaks = NULL, lower = NULL, upper = NULL, 
-        equidist = TRUE, gpd = TRUE, threshold = NULL, 
-        est = "moments", const = NULL, alpha = 0.01, 
-        residuals = TRUE, 
+        equidist = TRUE, probs = NULL, gpd = TRUE, 
+        threshold = NULL, est = "moments", const = NULL, 
+        alpha = 0.01, residuals = TRUE, 
         components = c("py010n", "py050n", "py090n", 
           "py100n", "py110n", "py120n", "py130n", "py140n"), 
         conditional = c(getCatName(income), "pl030"), 
@@ -82,13 +82,14 @@ simEUSILC <- function(dataS, hid = "db030", wh = "db090",
     missingBreaks <- is.null(breaks)
     if(missingBreaks) {
         if(is.null(upper) && gpd) upper <- Inf
-        breaks <- getBreaks(incomeS, wpS, zeros, lower, upper, equidist)
+        breaks <- getBreaks(incomeS, wpS, zeros, lower, upper, equidist, probs)
     }
     incomeCat <- getCatName(income)
     dataS[, incomeCat] <- getCat(dataS[, income], breaks, zeros)
     if(useMultinom) {
         # multinomial model with random draws from resulting categories
-        if(is.null(threshold) && missingBreaks &&  !isTRUE(equidist)) {
+        if(is.null(threshold) && missingBreaks &&  
+                (!isTRUE(equidist) || !is.null(probs))) {
             threshold <- breaks[length(breaks)-2]
         }
         dataP <- simContinuous(dataS, dataP, w=wp, strata=strata, 

@@ -8,7 +8,8 @@
 simCategorical <- function(dataS, dataP, w = "rb050", strata = "db040",
 		basic, additional = c("pl030", "pb220a"),
 		method = c("multinom", "distribution"), 
-		maxit = 500, MaxNWts = 1500, seed) {
+        limit = NULL, censor = NULL, maxit = 500, 
+        MaxNWts = 1500, eps = NULL, seed) {
 	
 	##### initializations
 	if(!missing(seed)) set.seed(seed)  # set seed of random number generator
@@ -37,7 +38,19 @@ simCategorical <- function(dataS, dataP, w = "rb050", strata = "db040",
 	# variables are coerced to factors
 	dataS <- checkFactor(dataS, c(strata, basic, additional))
 	dataP <- checkFactor(dataP, c(strata, basic))
-	
+    
+    # check arguments to account for structural zeros
+    if(length(additional) == 1) {
+        if(!(length(limit) == 1 && isTRUE(names(limit) == additional))) {
+            limit <- list(limit)
+            names(limit) <- additional
+        }
+        if(!(length(censor) == 1 && isTRUE(names(censor) == additional))) {
+            censor <- list(censor)
+            names(censor) <- additional
+        }
+    }
+    
 	
 	# list indStrata contains the indices of dataP split by strata
 	N <- nrow(dataP)
@@ -56,7 +69,7 @@ simCategorical <- function(dataS, dataP, w = "rb050", strata = "db040",
 #			print(paste(Sys.time(), i, sep=": "))
 			
 			# components of multinomial model are specified
-			response <- dataS[, i]
+			levelsResponse <- levels(dataS[, i])
 			formula <- paste(i, "~", paste(predNames, collapse = " + "))
 			
 			# check if population data contains factor levels that do not exist 
@@ -108,17 +121,31 @@ simCategorical <- function(dataS, dataP, w = "rb050", strata = "db040",
 						probs <- predict(mod, newdata=grid[-exclude, , drop=FALSE], 
 							type="probs")
 					}
+                    # set too small probabilities to exactly 0
+                    if(!is.null(eps)) {
+                        probs[probs < eps] <- 0
+                    }
 					# ensure code works for missing levels of response
 					ind <- as.integer(which(table(dataSample[, i]) > 0))
-					# local function for sampling from probabilities
-					if(length(ind) == 1) {
-						resample <- function(k, n, p) rep.int(1, n[k])
-					} else if(length(ind) == 2) {
-						resample <- function(k, n, p) spSample(n[k], c(1-p[k],p[k]))
-					} else if(is.null(dim(probs))) {
-						# only one row of new data
-						resample <- function(k, n, p) spSample(n, p)
-					} else resample <- function(k, n, p) spSample(n[k], p[k,])
+                    if(length(ind) > 2 && (nrow(grid)-length(exclude)) == 1) {
+                        probs <- t(probs)
+                    }
+                    # account for structural zeros
+                    if((!is.null(limit) || !is.null(censor)) && !is.null(dim(probs))) {
+                        if(length(exclude) == 0) {
+                            probs <- adjustProbs(probs, grid, names(indGrid), 
+                                limit[[i]], censor[[i]])
+                        } else {
+                            probs <- adjustProbs(probs, grid[-exclude, , drop=FALSE], 
+                                names(indGrid)[-exclude], limit[[i]], censor[[i]])
+                        }
+                    }
+                    # local function for sampling from probabilities
+                    if(length(ind) == 1) {
+                        resample <- function(k, n, p) rep.int(1, n[k])
+                    } else if(length(ind) == 2) {
+                        resample <- function(k, n, p) spSample(n[k], c(1-p[k],p[k]))
+                    } else resample <- function(k, n, p) spSample(n[k], p[k,])
 					# generate realizations for each combination
 					if(length(exclude) == 0) {
 						ncomb <- as.integer(sapply(indGrid, length))
@@ -131,10 +158,10 @@ simCategorical <- function(dataS, dataP, w = "rb050", strata = "db040",
 					}
 					sim <- unsplit(sim, dataPop, drop=TRUE)
 					# return realizations
-					levels(response)[ind][sim]
+					levelsResponse[ind][sim]
 				})
 			values <- factor(unsplit(values, dataP[, strata, drop=FALSE]), 
-				levels=levels(response))
+				levels=levelsResponse)
 			
 			## add new categorical variable to data set
 			dataP[, i] <- values

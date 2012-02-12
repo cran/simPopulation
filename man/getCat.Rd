@@ -13,7 +13,7 @@ getCat(x, breaks, zeros = TRUE, right = FALSE)
 }
 \arguments{
   \item{x}{a numeric vector to be categorized.}
-  \item{breaks}{a numeric vector of two or more breakpoints.}
+  \item{breaks}{a numeric vector of two or more break points.}
   \item{zeros}{a logical indicating whether \code{x} is semi-continuous, i.e., 
     contains a considerable amount of zeros.  See \dQuote{Details} on how this 
     affects the behavior of the function.}
@@ -22,7 +22,7 @@ getCat(x, breaks, zeros = TRUE, right = FALSE)
     or vice versa.}
 }
 \details{
-  If \code{zeros} is \code{TRUE}, 0 is added to the breakpoints and treated as 
+  If \code{zeros} is \code{TRUE}, 0 is added to the break points and treated as 
   its own factor level.  Consequently, intervals for negative values are 
   left-closed and right-open, whereas intervals for positive values are 
   left-open and right-closed.

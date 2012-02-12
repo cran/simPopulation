@@ -13,9 +13,9 @@ to EU-SILC.
 \tabular{ll}{
 Package: \tab simPopulation\cr
 Type: \tab Package\cr
-Version: \tab 0.3\cr
-Date: \tab 2011-08-08\cr
-Depends: \tab R(>= 2.7.1), nnet, POT, lattice, vcd\cr
+Version: \tab 0.4.0\cr
+Date: \tab 2012-02-12\cr
+Depends: \tab R(>= 2.10.0), nnet, POT, lattice, vcd\cr
 Imports: \tab lattice, vcd\cr
 License: \tab GPL (>= 2)\cr
 LazyLoad: \tab yes\cr
@@ -25,9 +25,10 @@ Index:
 \preformatted{
 contingencyWt           Weighted contingency coefficients
 eusilcS                 Synthetic EU-SILC survey data
-getBreaks               Compute breakpoints for categorizing
+getBreaks               Compute break points for categorizing
                         (semi-)continuous variables
 getCat                  Categorize (semi-)continuous variables
+ghanaS                  Synthetic GLSS survey data
 meanWt                  Weighted mean, variance, covariance matrix and
                         correlation matrix
 quantileWt              Weighted sample quantiles
@@ -40,6 +41,8 @@ simContinuous           Simulate continuous variables of population
 simEUSILC               Simulate EU-SILC population data
 simPopulation-package   Simulation of synthetic populations for surveys
                         based on sample data
+simRelation             Simulate categorical variables of population
+                        data
 simStructure            Simulate the household structure of population
                         data
 spBwplot                Weighted box plots

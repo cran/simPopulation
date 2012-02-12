@@ -68,10 +68,72 @@ getExclude.data.frame <- function(x, ...) {
 #	if(length(exclude) == 0) x else x[-exclude, , drop=FALSE]
 #}
 
+## adjust probabilities estimated with multinomial model to account for 
+## structural zeros
+adjustProbs <- function(probs, grid, pNames, limit = NULL, censor = NULL) {
+    set0 <- matrix(FALSE, nrow(probs), ncol(probs), 
+        dimnames=dimnames(probs))
+    target <- colnames(probs)
+    # account for structural zeros via argument 'limit'
+    if(is.list(limit)) {
+        limit <- limit[sapply(limit, inherits, "list")]
+        limit <- limit[names(limit) %in% names(grid)]
+        # loop over predictors for which to censor probabilities
+        for(i in seq_along(limit)) {
+            predNameI <- names(limit)[i]
+            predI <- grid[, predNameI]
+            limitI <- limit[[i]]
+            # loop over supplied outcomes of current predictor to 
+            # find probabilities to be set to zero
+            for(j in seq_along(limitI)) {
+                cat <- names(limitI)[j]
+                ok <- intersect(target, limitI[[j]])
+                if(length(ok) > 0) {
+                    set0[predI == cat, setdiff(target, ok)] <- TRUE
+                }
+            }
+        }
+    }
+    # account for structural zeros via argument 'censor'
+    if(is.list(censor)) {
+        censor <- censor[sapply(censor, inherits, c("list", "data.frame"))]
+        censor <- censor[names(censor) %in% target]
+        if(length(censor)) {
+            for(i in seq_along(censor)) {
+                censorNameI <- names(censor)[i]
+                censorI <- censor[[i]]
+                if(is.list(censorI)) {
+                    # loop over supplied predictors to find 
+                    # probabilities to be set to zero
+                    for(j in seq_along(censorI)) {
+                        predNameJ <- names(censorI)[j]
+                        predJ <- grid[, predNameJ]
+                        set0[predJ %in% censorI[[j]], censorNameI] <- TRUE
+                    }
+                } else {
+                    # set probabilities to zero for supplied 
+                    # combinations of predictors
+                    cNames <- apply(censorI, 1, paste, collapse=".")
+                    set0[pNames %in% cNames, censorNameI] <- TRUE
+                }
+            }
+        }
+    }
+    # set indicated probabilities to zero
+    probs[set0] <- 0
+    # set the non-censored probabilities to non-zero if all 
+    # probabilities of a row are zero
+    adjust <- which(apply(probs == 0, 1, all))
+    for(i in adjust) {
+        ok <- which(!set0[i,])
+        probs[i, ok] <- 1/length(ok)
+    }
+    probs
+}
 
 ## get breakpoints for categorizing continuous or semi-continuous variables
-getBreaks <- function(x, weights = NULL, zeros = TRUE, 
-        lower = NULL, upper = NULL, equidist = TRUE) {
+getBreaks <- function(x, weights = NULL, zeros = TRUE, lower = NULL, 
+        upper = NULL, equidist = TRUE, probs = NULL) {
     # initializations
     if(!is.numeric(x)) stop("'x' must be a numeric vector")
     if(!is.null(weights)) {
@@ -81,12 +143,20 @@ getBreaks <- function(x, weights = NULL, zeros = TRUE,
         }
     }
     zeros <- isTRUE(zeros)
+    if(!is.null(probs)) {
+        if(!is.numeric(probs) || all(is.na(probs)) || 
+            isTRUE(any(probs < 0 | probs > 1))) {
+            stop("'probs' must be a numeric vector with values in [0,1]")
+        }
+    }
     if(zeros) {
         pos <- which(x > 0)
         if(length(pos)) {
-            if(isTRUE(equidist)) ppos <- seq(0.1, 1, by=0.1) 
-            else ppos <- c(0.01, 0.05, 0.1, seq(0.2, 0.8, by=0.2), 0.9, 0.95, 0.99, 1)
-            qpos <- quantileWt(x[pos], weights[pos], ppos)
+            if(is.null(probs)) {
+                if(isTRUE(equidist)) probs <- seq(0.1, 1, by=0.1) 
+                else probs <- c(0.01, 0.05, 0.1, seq(0.2, 0.8, by=0.2), 0.9, 0.95, 0.99, 1)
+            } else probs <- c(probs, 1)
+            qpos <- quantileWt(x[pos], weights[pos], probs)
         } else qpos <- NULL
         neg <- which(x < 0)
         if(length(neg)) {
@@ -95,9 +165,11 @@ getBreaks <- function(x, weights = NULL, zeros = TRUE,
         } else qneg <- NULL
         breaks <- c(qneg, 0, qpos)
     } else {
-        if(isTRUE(equidist)) p <- seq(0, 1, by=0.1) 
-        else p <- c(0, 0.01, 0.05, 0.1, seq(0.2, 0.8, by=0.2), 0.9, 0.95, 0.99, 1)
-        breaks <- quantileWt(x, weights, p)   
+        if(is.null(probs)) {
+            if(isTRUE(equidist)) probs <- seq(0, 1, by=0.1) 
+            else probs <- c(0, 0.01, 0.05, 0.1, seq(0.2, 0.8, by=0.2), 0.9, 0.95, 0.99, 1)
+        } else probs <- c(0, probs, 1)
+        breaks <- quantileWt(x, weights, probs)   
     }
     breaks <- unique(breaks)  # remove duplicated values
     if(!is.null(lower)) {
@@ -157,6 +229,10 @@ getCat <- function(x, breaks, zeros = TRUE, right = FALSE) {
 
 ## get name of categorized variable
 getCatName <- function(name) paste(name, "Cat", sep="")
+
+
+## get name of categorical variable for household head
+getHeadName <- function(name) paste(name, "Head", sep="")
 
 
 ## truncated Pareto distribution

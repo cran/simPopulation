@@ -1,16 +1,16 @@
 \name{getBreaks}
 \alias{getBreaks}
 \title{
-  Compute breakpoints for categorizing (semi-)continuous variables
+  Compute break points for categorizing (semi-)continuous variables
 }
 \description{
-  Compute breakpoints for categorizing continuous or semi-continuous variables 
+  Compute break points for categorizing continuous or semi-continuous variables 
   using (weighted) quantiles.  This is a utility function that is useful for 
   writing custom wrapper functions such as \code{\link{simEUSILC}}.
 }
 \usage{
-getBreaks(x, weights = NULL, zeros = TRUE, 
-          lower = NULL, upper = NULL, equidist = TRUE)
+getBreaks(x, weights = NULL, zeros = TRUE, lower = NULL, 
+          upper = NULL, equidist = TRUE, probs = NULL)
 }
 \arguments{
   \item{x}{a numeric vector to be categorized.}
@@ -20,15 +20,18 @@ getBreaks(x, weights = NULL, zeros = TRUE,
     affects the behavior of the function.}
   \item{lower, upper}{optional numeric values specifying lower and upper bounds 
     other than minimum and maximum of \code{x}, respectively.}
-  \item{equidist}{a logical indicating whether the (positive) breakpoints 
+  \item{equidist}{a logical indicating whether the (positive) break points 
     should be equidistant or whether there should be refinements in the lower 
     and upper tail (see \dQuote{Details}).}
+  \item{probs}{a numeric vector of probabilities with values in \eqn{[0, 1]} 
+    giving quantiles to be used as (positive) break points.  If supplied, this 
+    is preferred over \code{equidist}.}
 }
 \details{
   If \code{equidist} is \code{TRUE}, the behavior is as follows.  If 
   \code{zeros} is \code{TRUE} as well, the 0\%, 10\%, \dots, 90\% quantiles of 
   the negative values and the 10\%, 20\%, \dots, 100\% of the positive values 
-  are computed.  These quantiles are then used as breakpoints together with 0.  
+  are computed.  These quantiles are then used as break points together with 0.  
   If \code{zeros} is not \code{TRUE}, on the other hand, the 0\%, 10\%, \dots, 
   100\% quantiles of all values are used.
   
@@ -47,7 +50,7 @@ getBreaks(x, weights = NULL, zeros = TRUE,
   \code{\link{quantileWt}}. 
 }
 \value{
-  A numeric vector of breakpoints.
+  A numeric vector of break points.
 }
 \author{
   Andreas Alfons
@@ -58,10 +61,10 @@ getBreaks(x, weights = NULL, zeros = TRUE,
 \examples{
 data(eusilcS)
 
-## semi-continuous variable, positive breakpoints equidistant
+# semi-continuous variable, positive break points equidistant
 getBreaks(eusilcS$netIncome, weights=eusilcS$rb050)
 
-## semi-continuous variable, positive breakpoints not equidistant
+# semi-continuous variable, positive break points not equidistant
 getBreaks(eusilcS$netIncome, weights=eusilcS$rb050, 
     equidist = FALSE)
 }

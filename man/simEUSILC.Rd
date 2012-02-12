@@ -14,9 +14,9 @@ simEUSILC(dataS, hid = "db030", wh = "db090", wp = "rb050",
           categorical = c("pl030", "pb220a"), 
           income = "netIncome", method = c("multinom", "twostep"), 
           breaks = NULL, lower = NULL, upper = NULL, 
-          equidist = TRUE, gpd = TRUE, threshold = NULL, 
-          est = "moments", const = NULL, alpha = 0.01, 
-          residuals = TRUE, 
+          equidist = TRUE, probs = NULL, gpd = TRUE, 
+          threshold = NULL, est = "moments", const = NULL, 
+          alpha = 0.01, residuals = TRUE, 
           components = c("py010n", "py050n", "py090n", 
             "py100n", "py110n", "py120n", "py130n", "py140n"), 
           conditional = c(getCatName(income), "pl030"), 
@@ -49,7 +49,7 @@ simEUSILC(dataS, hid = "db030", wh = "db090", wp = "rb050",
     used for simulating additional categorical and continuous variables to 
     decrease computation time.}
   \item{breaksAge}{numeric; if \code{categorizeAge} is \code{TRUE}, an optional 
-    vector of two or more breakpoints for constructing age categories, 
+    vector of two or more break points for constructing age categories, 
     otherwise ignored.}
   \item{categorical}{a character vector specifying additional categorical 
     variables of \code{dataS} that should be simulated for the population data.}
@@ -61,16 +61,20 @@ simEUSILC(dataS, hid = "db030", wh = "db090", wp = "rb050",
     resulting ategories) and \code{"twostep"} (for using two-step regression 
     models combined with random error terms).}
   \item{breaks}{if \code{method} is \code{"multinom"}, an optional numeric 
-    vector of two or more breakpoints for categorizing the personal income.  
-    If missing, breakpoints are computed using weighted quantiles.}
+    vector of two or more break points for categorizing the personal income.  
+    If missing, break points are computed using weighted quantiles.}
   \item{lower, upper}{numeric values; if \code{method} is \code{"multinom"} and 
     \code{breaks} is \code{NULL}, these can be used to specify lower and upper 
     bounds other than minimum and maximum, respectively.  Note that if 
     \code{gpd} is \code{TRUE} (see below), \code{upper} defaults to \code{Inf}.}
   \item{equidist}{logical; if \code{method} is \code{"multinom"} and 
     \code{breaks} is \code{NULL}, this indicates whether the (positive) default 
-    breakpoints should be equidistant or whether there should be refinements in 
+    break points should be equidistant or whether there should be refinements in 
     the lower and upper tail (see \code{\link{getBreaks}}).}
+  \item{probs}{numeric vector with values in \eqn{[0, 1]}; if \code{method} is 
+    \code{"multinom"} and \code{breaks} is \code{NULL}, this gives 
+    probabilities for quantiles to be used as (positive) break points.  If 
+    supplied, this is preferred over \code{equidist}.}
   \item{gpd}{logical; if \code{method} is \code{"multinom"}, this indicates 
     whether the upper tail of the personal income should be simulated by random 
     draws from a (truncated) generalized Pareto distribution rather than a 
@@ -80,7 +84,7 @@ simEUSILC(dataS, hid = "db030", wh = "db090", wp = "rb050",
     generalized Pareto distribution.}
   \item{est}{a character string; if \code{method} is \code{"multinom"}, the 
     estimator to be used to fit the generalized Pareto distribution (see 
-    \code{\link[POT]{fitgpd}}).}
+    \code{\link[POT:fitGPD]{fitgpd}}).}
   \item{const}{numeric; if \code{method} is \code{"twostep"}, this gives a 
     constant to be added before log transformation.}
   \item{alpha}{numeric; if \code{method} is \code{"twostep"}, this gives 

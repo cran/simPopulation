@@ -1,3 +1,19 @@
+Changes in simPopulation version 0.4.0
+    
+    + New function 'simRelation' for simulation of categorical predictor 
+      variables with dependent relationships among household members.
+    
+    + New example data 'ghanaS' for the Ghana Living Standards Survey.
+    
+    + New demo 'ghana' for the simulation of Ghana Living Standards Survey data.
+    
+    + Added more functionality to account for structural zeros.
+    
+    + New argument 'probs' in 'getBreaks', 'simContinuous' and 'simEUSILC' 
+      giving probabilities for (positive) break points based on quantiles.
+
+
+
 Changes in simPopulation version 0.3
     
     + Functions 'simCategorical' and 'simContinuous' are now much more 
@@ -9,6 +25,7 @@ Changes in simPopulation version 0.3
     + Updated author affiliation.
 
 
+
 Changes in simPopulation version 0.2.1
     
     + Small changes in vignette.
@@ -17,7 +34,7 @@ Changes in simPopulation version 0.2.1
 Changes in simPopulation version 0.2
     
     + New argument 'equidist' in 'getBreaks', 'simContinuous' and 'simEUSILC' 
-      indicating whether (positive) breakpoints should be equidistant.
+      indicating whether (positive) break points should be equidistant.
     
     + Function 'continencyWt' is now generic and has an additional 'data.frame' 
       method for computing pairwise contingency coefficients.
