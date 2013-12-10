@@ -13,10 +13,9 @@ to EU-SILC.
 \tabular{ll}{
 Package: \tab simPopulation\cr
 Type: \tab Package\cr
-Version: \tab 0.4.0\cr
-Date: \tab 2012-02-12\cr
+Version: \tab 0.4.1\cr
+Date: \tab 2013-12-10\cr
 Depends: \tab R(>= 2.10.0), nnet, POT, lattice, vcd\cr
-Imports: \tab lattice, vcd\cr
 License: \tab GPL (>= 2)\cr
 LazyLoad: \tab yes\cr
 }
@@ -64,8 +63,9 @@ Further information is available in the following vignettes:
 }
 }
 \author{
-Andreas Alfons and Stefan Kraft
+Andreas Alfons [aut, cre],
+  Stefan Kraft [aut]
 
-Maintainer: Andreas Alfons <andreas.alfons@econ.kuleuven.be>
+Maintainer: Andreas Alfons <alfons@ese.eur.nl>
 }
 \keyword{package}

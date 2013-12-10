@@ -1,3 +1,11 @@
+Changes in simPopulation version 0.4.1
+    
+    + Changes in demo 'ghana' for the simulation of Ghana Living Standards 
+      Survey data.
+    
+    + Moved vignettes to 'vignettes' folder.
+
+
 Changes in simPopulation version 0.4.0
     
     + New function 'simRelation' for simulation of categorical predictor 

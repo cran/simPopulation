@@ -113,13 +113,13 @@ spCdfplot("income", "weight", dataS = ghanaS, dataP = ghanaP, xlim = c(0, q))
 ## create box plots of annual income
 spBwplot("income", "weight", dataS = ghanaS, dataP = ghanaP, pch = "|")
 
-## create box plots of annual income conditional on region
-spBwplot("income", "weight", "region", dataS = ghanaS, dataP = ghanaP, 
-    pch = "|", layout = c(1, 10))
-
 ## create box plots of annual income conditional on gender
 spBwplot("income", "weight", "sex", dataS = ghanaS, dataP = ghanaP, 
     pch = "|", layout = c(1, 2))
+
+## create box plots of annual income conditional on region
+spBwplot("income", "weight", "region", dataS = ghanaS, dataP = ghanaP, 
+    pch = "|", layout = c(1, 10))
 
 ## create box plots of annual income conditional on ethnicity
 spBwplot("income", "weight", "ethnic", dataS = ghanaS, dataP = ghanaP, 
@@ -128,3 +128,7 @@ spBwplot("income", "weight", "ethnic", dataS = ghanaS, dataP = ghanaP,
 ## create box plots of annual income conditional on occupation
 spBwplot("income", "weight", "occupation", dataS = ghanaS, dataP = ghanaP, 
     pch = "|", layout = c(1, 11))
+
+## create box plots of annual income conditional on occupation
+spBwplot("income", "weight", "highest_degree", dataS = ghanaS, dataP = ghanaP, 
+    pch = "|", layout = c(2, 8))

@@ -1,4 +1,6 @@
 ## imports
+import(POT)
+import(nnet)
 importFrom(lattice, bwplot, panel.bwplot)
 importFrom(vcd, mosaic)
 

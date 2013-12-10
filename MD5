@@ -1,6 +1,6 @@
-bdf9b3ddf2b6743868d184d56b5e3308 *DESCRIPTION
-8b864c0ea359d69bd1dd8d97f9d8e98d *NAMESPACE
-929ced57cf74b156f6f8a66c4bbca2ed *NEWS
+db7235e4c8af9e9bad9de142529952fb *DESCRIPTION
+9df425dd17d7ced9ca1d2fca883aded7 *NAMESPACE
+c8adf6b8673d373aaef712b3d5d94a92 *NEWS
 31af0530edcc383d7859c9b271fae357 *R/contingencyWt.R
 b1a6c7f1fa70bdaf26f57a05dbbcbbbb *R/quantileWt.R
 21a8d73d834c34d7273b2a4289a38f4f *R/simCategorical.R
@@ -19,15 +19,16 @@ d95bf82811e411aeb64ac5f2122109d6 *R/spMosaic.R
 d419ad7cba3bde1ad5edcca845c9c022 *R/spTable.R
 86f4521d3eb4ed7db5282edc24f6bbb0 *R/tableWt.R
 9bc7c213aacb002dc8229bc304a410c4 *R/utils.R
-4f1317b278071a03a4fc01484a4a8e60 *data/eusilcS.RData
-fe381b6b415307975b2799854d07a6d7 *data/ghanaS.RData
+f12f247f328c15a32c397391c1a39910 *build/vignette.rds
+6e742385c901d9a2746c529d59a0af1a *data/eusilcS.RData
+ec570d6876f1984d87ffaa20ff9dc193 *data/ghanaS.RData
 25613675fabaf2e66f5a2e24ff8a6bcd *demo/00Index
 d3cac2ce93f0d0de0498896573c26c09 *demo/eusilc.R
-28d32ccdb89bfcd660c7be4b388c9c80 *demo/ghana.R
+1201134f2f338ec29014746ffc60f0c6 *demo/ghana.R
 2ffacd741f0c7383dff756b86340ba7b *inst/CITATION
-fff504bc81e337746a1b1d2e27568618 *inst/doc/simPopulation-eusilc.Rnw
-d328b50c85194e397ab84da358e5ea50 *inst/doc/simPopulation-eusilc.pdf
-7a9431fc904378f6bbc09f92bc88bc58 *inst/doc/simPopulation.bib
+7926246c0bedbcf2de49eb7011375184 *inst/doc/simPopulation-eusilc.R
+f3fa1ede3f6d20115c158e806d26290c *inst/doc/simPopulation-eusilc.Rnw
+02f71f4f6952cf25ed55d08f83996676 *inst/doc/simPopulation-eusilc.pdf
 9ca6fbabeec01aa613c9c583db7f12a0 *man/contingencyWt.Rd
 c4784e65bc4bae059021a9ba69f17f59 *man/eusilcS.Rd
 092906fef5927a0fca66e70b3749df1a *man/getBreaks.Rd
@@ -38,7 +39,7 @@ d74dc3db2e5a58c39c489ca7412904fa *man/simCategorical.Rd
 cff19d967b6e21546cdd259a022ed48e *man/simComponents.Rd
 31522b24e36bdb516f22079c1774bf36 *man/simContinuous.Rd
 1c4345228e416bbf170203c4de792366 *man/simEUSILC.Rd
-231062851104c33939baae65b8489373 *man/simPopulation-package.Rd
+8dca4fb05a925f9d684c6e09bacaf268 *man/simPopulation-package.Rd
 d5a6a1004656029aeec001c38105a96a *man/simRelation.Rd
 2c5e8fe2a3896167c331c4b1537dde47 *man/simStructure.Rd
 238ec0ec9909a296adb6cfdcef6bf975 *man/spBwplot.Rd
@@ -49,3 +50,5 @@ f361a78e13121fab616624088b793178 *man/spMosaic.Rd
 7a2fc008e9080d391d46cb9beb3b4ee0 *man/spTable.Rd
 e5ce4cd17ad1ec2df618c43eab15b372 *man/tableWt.Rd
 d41f56a10a8414990cd854deefbd43ec *man/utils.Rd
+f3fa1ede3f6d20115c158e806d26290c *vignettes/simPopulation-eusilc.Rnw
+54ce57a830546bc6406ed60c09b04d10 *vignettes/simPopulation.bib
